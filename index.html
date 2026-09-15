@@ -256,13 +256,21 @@ td .sub{font-size:12px;color:var(--encre-3)}
 .tile2.hi{background:var(--ambre-pale);border-color:var(--ambre-trait)} .tile2.hi .v{color:var(--ambre)}
 .tile2.ok{background:var(--vert-pale);border-color:#CDE4DC} .tile2.ok .v{color:var(--vert-fonce)}
 .tile2.al{background:var(--rouge-pale);border-color:#E8C9C4} .tile2.al .v{color:var(--rouge)}
+.tile2.blue{background:#EAF0F5;border-color:#CFDDE8} .tile2.blue .v{color:#2A5A7A}
 .tile2.dark{background:var(--encre);border-color:var(--encre)} .tile2.dark .v{color:#fff} .tile2.dark .k{color:#C9DCD7} .tile2.dark .s{color:#8FA9A4}
 .secth{display:flex;align-items:baseline;gap:10px;margin:4px 0 10px}
 .secth h2{font-size:15px}
 .secth span{font-size:12.5px;color:var(--encre-3)}
-.spark{display:flex;align-items:flex-end;gap:3px;height:46px;margin-top:6px}
-.spark i{flex:1;background:var(--vert);border-radius:2px 2px 0 0;min-height:2px;opacity:.85}
-.spark i.last{background:var(--ambre);opacity:1}
+.spark{display:flex;align-items:flex-end;gap:10px;height:150px}
+.sbar{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+.sbar .sv{font-size:15px;font-weight:700;color:var(--encre);margin-bottom:6px;letter-spacing:-.02em}
+.sbar i{width:100%;background:linear-gradient(180deg,var(--vert-clair),var(--vert));border-radius:6px 6px 0 0;min-height:6px;transition:height .5s cubic-bezier(.2,.8,.2,1)}
+.sbar i.last{background:linear-gradient(180deg,#F0C46A,var(--ambre))}
+.sbar .sl{font-size:11px;color:var(--encre-3);margin-top:7px;white-space:nowrap}
+.sgoal{margin-top:14px;padding-top:12px;border-top:1px solid var(--trait);font-size:13px;color:var(--encre-2)}
+.sgoal.ok{color:var(--vert-fonce);font-weight:500}
+.ok-dot{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--vert-pale);color:var(--vert-fonce);font-size:12px;font-weight:700;border:1px solid #CDE4DC}
+tbody tr:has(.ok-dot){background:linear-gradient(90deg,rgba(234,243,236,.35),transparent 30%)}
 .alert{display:flex;gap:12px;align-items:center;padding:10px 12px;border-radius:8px;background:var(--rouge-pale);border:1px solid #E8C9C4;margin-bottom:8px;cursor:pointer}
 .alert .d{margin-left:auto;font-size:12px;color:var(--rouge);font-weight:600;white-space:nowrap}
 .rank{display:flex;align-items:center;gap:12px;padding:7px 0;border-bottom:1px solid #F1F4F3}
@@ -299,7 +307,14 @@ td .sub{font-size:12px;color:var(--encre-3)}
 .tovl::before{content:'';position:absolute;inset:0;background:rgba(13,24,24,.62)}
 .thole{position:absolute;border-radius:12px;box-shadow:0 0 0 9999px rgba(13,24,24,.62);border:2px solid var(--vert-clair);animation:pulse 1.6s ease-in-out infinite}
 @keyframes pulse{0%,100%{box-shadow:0 0 0 9999px rgba(13,24,24,.62),0 0 0 0 rgba(141,194,114,.5)}50%{box-shadow:0 0 0 9999px rgba(13,24,24,.62),0 0 0 10px rgba(141,194,114,0)}}
-.tcard{position:absolute;width:min(330px,88vw);background:var(--carte);border-radius:14px;padding:16px;box-shadow:0 16px 40px rgba(0,0,0,.3)}
+.tcard{position:absolute;width:min(340px,90vw);background:var(--carte);border-radius:14px;padding:16px;box-shadow:0 16px 40px rgba(0,0,0,.35);animation:tpop .3s cubic-bezier(.2,.8,.2,1)}
+@keyframes tpop{from{opacity:0;transform:translate(-50%,8px) scale(.97)}}
+.tcard[style*="translate(-50%,-50%)"]{animation:none}
+.tprog{display:flex;gap:4px}
+.tprog i{flex:1;height:3px;border-radius:2px;background:var(--trait)}
+.tprog i.on{background:var(--vert)}
+.tskipbox{display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--encre-3);cursor:pointer}
+.tskipbox input{width:auto}
 /* catalogue & stats */
 .cat{display:grid;grid-template-columns:1fr;gap:4px}
 .crow{display:flex;gap:12px;align-items:center;padding:8px 12px;border-radius:8px;background:var(--carte);border:1px solid var(--trait);cursor:pointer}
@@ -331,6 +346,9 @@ td .sub{font-size:12px;color:var(--encre-3)}
   .tiles{grid-template-columns:repeat(2,1fr);gap:10px}
   .tile2{min-height:104px;padding:14px;border-radius:14px}
   .tile2 .v{font-size:27px}
+  .spark{height:120px;gap:6px}
+  .sbar .sv{font-size:13px}
+  .sbar .sl{font-size:10px}
   .stat .v{font-size:22px}
   .bulk{position:sticky;top:104px;z-index:15}
   body{padding-bottom:calc(80px + env(safe-area-inset-bottom))}
@@ -683,8 +701,11 @@ async function chargerDemo(){
         'Adresse : '+adr+', '+cp+' '+ville,'Date : '+date+'   Technicien : '+tech,'Donneur d ordre : '+dos,'',
         'Chauffage : '+chauf,'Surfaces : '+surf,'Batiment : '+bat,'Equipements : '+eq,'','Observations :',
         ...resume.split('. ').filter(Boolean).map(s=>' - '+s),'','Conclusion du technicien :',' '+concl]);
-      const fid=uid();
-      try{await Store.set(fk(fid),{b64,name,type:'application/pdf'});v.files.push({id:fid,name,size:Math.round(b64.length*0.75),type:'application/pdf'});}catch(e){}
+      v.files.push({id:uid(),name,size:Math.round(b64.length*0.75),type:'application/pdf',demo:true,lignes:[
+        'RAPPORT DE VISITE TECHNIQUE — '+fiche,'Client : '+(rs||pre+' '+nom),'Adresse : '+adr+', '+cp+' '+ville,
+        'Date : '+date+'   Technicien : '+tech,'Donneur d ordre : '+dos,'','Chauffage : '+chauf,'Surfaces : '+surf,
+        'Batiment : '+bat,'Equipements : '+eq,'','Observations :',...resume.split('. ').filter(Boolean).map(x=>' - '+x),
+        '','Conclusion du technicien :',' '+concl]});
       v.audit={resume,chauffage:chauf,surface:surf,batiment:bat,equipements:eq,points:pts,conclusion:concl,date,fichiers:1};
     }
     if(opt.histo)v.histoVT=opt.histo.map(x=>{
@@ -698,7 +719,7 @@ async function chargerDemo(){
     if(statut==='Dossier signé')v.suivi.push({d:iso(now.getTime()-6*864e5),par:v.confirme_par||'Bratan',t:'Devis signé, dossier transmis à l\'obligé.'});
     visites.push(v);
   }
-  await chargerDemoSup();
+  chargerDemoSup();
   await save();
 }
 
@@ -734,7 +755,7 @@ const CLIENTS_SUP=[
  ['B2B','Supérette Bel Air','Karim','Nedjar','01 60 11 22 88','Centre commercial','77000','Melun','Commerce','BAT-TH-116'],
  ['B2B','Scierie Lacoste','Bruno','Lacoste','05 59 22 44 11','Route des Pyrénées','64400','Oloron','Scierie','AGRI-EQ-110']
 ];
-async function chargerDemoSup(){
+function chargerDemoSup(){
   const now=new Date(), iso=t=>new Date(t).toISOString().slice(0,10);
   const doss=['Solaris Énergie','Fleet Services','Serres Provence','Air & Chaleur Alpes','Ouest Régulation','Antilles Clim','Motors & Drives'];
   const rnd=(a)=>a[Math.floor(Math.random()*a.length)];
@@ -753,16 +774,16 @@ async function chargerDemoSup(){
       notes:'',etat,statut:'En attente',optout:false,saisi_par:'Confirmateur',files:[],suivi:[],demo:true};
     if(etat==='Rapport reçu'){
       const name='VT_'+(rs||nom).replace(/[^a-z0-9]/gi,'_')+'_'+date+'.pdf';
-      const b64=miniPDF(['RAPPORT DE VISITE TECHNIQUE — '+fiche,'Client : '+(rs||pre+' '+nom),'Adresse : '+adr+', '+cp+' '+ville,'Date : '+date+'   Technicien : '+tech,'','Releves effectues sur site.','Voir detail dans le rapport complet.']);
-      const fid=uid();
-      try{ Store.set(fk(fid),{b64,name,type:'application/pdf'}); v.files.push({id:fid,name,size:Math.round(b64.length*0.75),type:'application/pdf'}); }catch(e){}
+      v.files.push({id:uid(),name,size:2400,type:'application/pdf',demo:true,lignes:[
+        'RAPPORT DE VISITE TECHNIQUE — '+fiche,'Client : '+(rs||pre+' '+nom),'Adresse : '+adr+', '+cp+' '+ville,
+        'Date : '+date+'   Technicien : '+tech,'','Releves effectues sur site.','Voir detail dans le rapport complet.']});
     }
     visites.push(v);
   });
 }
 
 async function retirerDemo(){
-  for(const v of visites.filter(x=>x.demo))for(const f of(v.files||[]))await Store.del(fk(f.id));
+  for(const v of visites.filter(x=>x.demo))for(const f of(v.files||[]))if(!f.demo)await Store.del(fk(f.id));
   visites=visites.filter(x=>!x.demo);await save();
 }
 
@@ -989,38 +1010,53 @@ function closeAssist(){const d=document.getElementById('assist'),o=d.querySelect
 
 /* ================= VISITE GUIDÉE ================= */
 const TOUR=[
-  {sel:null,t:'Bienvenue sur VisitTrack',d:'Deux minutes pour savoir où cliquer. Vous pouvez arrêter à tout moment.'},
-  {sel:'#tabs',t:'Vos deux espaces',d:'Le tableau de bord donne l\'état général. Visites techniques contient toutes les fiches.'},
-  {sel:'#bMenu',t:'Le menu',d:'Le catalogue des 194 fiches CEE, le projet, le guide et les contacts sont rangés ici.'},
-  {sel:'#bNew,#bNewM',t:'Enregistrer une VT',d:'Saisissez le SIRET : raison sociale, adresse et dirigeant se remplissent seuls. Puis la fiche CEE, la date, le technicien, et le rapport en PDF.'},
-  {sel:'#bAssist',t:'La recherche',d:'Posez une question en français : « planning de Fabien », « rapports en retard », un nom de client. La réponse est immédiate.'},
-  {sel:null,t:'Un dernier point',d:'Une VT effectuée sans rapport joint déclenche une alerte rouge sur le tableau de bord. C\'est ce qu\'il faut traiter en premier chaque matin.'}
+ {t:'Bienvenue sur VisitTrack',d:'Deux minutes pour savoir où cliquer. Vous pouvez arrêter quand vous voulez.'},
+ {sel:'#tabs',t:'Vos deux espaces',d:'Le tableau de bord donne l\'état général du réseau. Visites techniques contient toutes les fiches.'},
+ {sel:'.alert,.tiles',t:'Ce qu\'il faut traiter',d:'En rouge, les VT effectuées dont le rapport n\'est pas arrivé. En vert, ce qui est en ordre. Chaque case est cliquable et ouvre la liste correspondante.'},
+ {sel:'#bMenu',t:'Le menu',d:'Le catalogue des 194 fiches CEE, le projet, le guide et les contacts sont rangés ici.'},
+ {go:()=>{closeModal();formVisite(null);},sel:'#i_siret',wait:420,t:'Le SIRET fait le travail',d:'Tapez les 14 chiffres ici : raison sociale, adresse, ville, code NAF et dirigeant se remplissent tout seuls. Aucune saisie manuelle.'},
+ {sel:'#fp',t:'La fiche CEE',d:'Tapez un code ou un mot de l\'intitulé — « séchage », « serre », « gonflage » — et choisissez dans la liste.'},
+ {sel:'#drop',t:'Le rapport d\'audit',d:'Déposez le PDF ici. La plateforme le lit et en tire une synthèse : chauffage, surfaces, équipements, conclusion du technicien.'},
+ {go:()=>closeModal(),sel:'#bAssist',wait:320,t:'La recherche',d:'Posez une question en français : « planning de Fabien », « rapports en retard », ou dites « Yacine m\'a envoyé les 2 derniers rapports » pour mettre la base à jour.'},
+ {t:'À faire chaque matin',d:'Ouvrez le tableau de bord, traitez la bande rouge, puis la bande ambre. Le reste suit tout seul.'}
 ];
 let tourI=0;
-function startTour(){tourI=0;view='tableau';render();setTimeout(drawTour,350);}
+function startTour(){tourI=0;view='tableau';render();setTimeout(()=>drawTour(),350);}
 function drawTour(){
   const s=TOUR[tourI],d=document.getElementById('tour');
-  let box=null;
-  if(s.sel){const el=document.querySelector(s.sel.split(',').map(x=>x.trim()).find(x=>{const e=document.querySelector(x);return e&&e.offsetParent!==null;})||s.sel.split(',')[0]);
-    if(el){const r=el.getBoundingClientRect();box={x:r.left-6,y:r.top-6,w:r.width+12,h:r.height+12};}}
-  const pos=box?(box.y>window.innerHeight/2?'top':'bottom'):'center';
-  d.innerHTML=`<div class="tovl">
-    ${box?`<div class="thole" style="left:${box.x}px;top:${box.y}px;width:${box.w}px;height:${box.h}px"></div>`:''}
-    <div class="tcard" style="${pos==='center'?'top:50%;transform:translate(-50%,-50%);left:50%':pos==='bottom'?`top:${box.y+box.h+14}px;left:50%;transform:translateX(-50%)`:`top:${Math.max(14,box.y-190)}px;left:50%;transform:translateX(-50%)`}">
-      <div class="xs mut">Étape ${tourI+1} sur ${TOUR.length}</div>
-      <h3 style="margin:4px 0 6px">${esc(s.t)}</h3>
-      <p class="sm" style="margin:0 0 14px">${esc(s.d)}</p>
-      <div style="display:flex;gap:8px;align-items:center">
-        <button class="btn g sm" id="tskip">Quitter</button>
-        ${tourI>0?'<button class="btn g sm" id="tprev">Retour</button>':''}
-        <button class="btn sm" id="tnext" style="margin-left:auto">${tourI===TOUR.length-1?'Terminer':'Suivant'}</button>
-      </div>
-    </div></div>`;
-  const on=(i,f)=>{const e=document.getElementById(i);if(e)e.onclick=f;};
-  on('tskip',endTour);on('tprev',()=>{tourI--;drawTour();});
-  on('tnext',()=>{if(tourI===TOUR.length-1){endTour();return;}tourI++;drawTour();});
+  const paint=()=>{
+    let box=null;
+    if(s.sel){
+      const el=s.sel.split(',').map(x=>document.querySelector(x.trim())).find(e=>e&&e.offsetParent!==null);
+      if(el){el.scrollIntoView({block:'center',behavior:'auto'});const r=el.getBoundingClientRect();box={x:Math.max(4,r.left-6),y:r.top-6,w:Math.min(r.width+12,window.innerWidth-8),h:r.height+12};}
+    }
+    const H=window.innerHeight, place=!box?'center':(box.y+box.h+230<H?'bottom':(box.y-215>0?'top':'center'));
+    d.innerHTML=`<div class="tovl">
+      ${box?`<div class="thole" style="left:${box.x}px;top:${box.y}px;width:${box.w}px;height:${box.h}px"></div>`:''}
+      <div class="tcard" style="${place==='center'?'top:50%;left:50%;transform:translate(-50%,-50%)':place==='bottom'?`top:${box.y+box.h+16}px;left:50%;transform:translateX(-50%)`:`top:${box.y-205}px;left:50%;transform:translateX(-50%)`}">
+        <div class="tprog">${TOUR.map((x,i)=>`<i class="${i<=tourI?'on':''}"></i>`).join('')}</div>
+        <h3 style="margin:10px 0 6px">${esc(s.t)}</h3>
+        <p class="sm" style="margin:0 0 14px">${esc(s.d)}</p>
+        <label class="tskipbox"><input type="checkbox" id="tno"> Ne plus afficher</label>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:12px">
+          <button class="btn g sm" id="tquit">Quitter</button>
+          ${tourI>0?'<button class="btn g sm" id="tprev">Retour</button>':''}
+          <button class="btn sm" id="tnext" style="margin-left:auto">${tourI===TOUR.length-1?'Terminer':'Suivant'}</button>
+        </div>
+      </div></div>`;
+    const on=(i,f)=>{const e=document.getElementById(i);if(e)e.onclick=f;};
+    on('tquit',endTour);
+    on('tprev',()=>{tourI--;drawTour();});
+    on('tnext',()=>{if(tourI===TOUR.length-1){endTour();return;}tourI++;drawTour();});
+  };
+  if(s.go){s.go();setTimeout(paint,s.wait||300);}else paint();
 }
-function endTour(){document.getElementById('tour').innerHTML='';}
+function endTour(){
+  const c=document.getElementById('tno');
+  if(c&&c.checked)Store.set('visittrack:tour','off').catch(()=>{});
+  document.getElementById('tour').innerHTML='';
+  closeModal();
+}
 
 /* ---------- stockage ---------- */
 const Store=(()=>{const ws=typeof window!=='undefined'&&window.storage&&typeof window.storage.get==='function';return{
@@ -1228,7 +1264,7 @@ const periodeOk=v=>{switch(filtrePeriode){
   case 'optout':return !!v.optout;
   case 'rappels':return v.rappel&&v.rappel<=today&&!v.optout;
   default:return true;}};
-const PERIODE_LABEL={semaine:'VT de cette semaine',mois:'VT de ce mois',avenir:'VT à venir',aujourdhui:'VT aujourd\'hui',realisees:'VT effectuées',enroute:'Technicien envoyé',reportees:'VT reportées',annulees:'VT annulées',avecrapport:'Avec rapport',sansrapport:'Rapport manquant',pdfajoindre:'PDF à joindre',synthese:'Synthèse lue',optout:'Ne pas recontacter',rappels:'Rappels échus'};
+const PERIODE_LABEL={semaine:'VT de cette semaine',mois:'VT de ce mois',avenir:'VT à venir',aujourdhui:'VT aujourd\'hui',realisees:'VT effectuées',enroute:'Technicien envoyé',reportees:'VT reportées',annulees:'VT annulées',avecrapport:'Avec rapport',sansrapport:'Rapport manquant',pdfajoindre:'PDF à joindre',synthese:'Synthèse lue',optout:'Ne pas recontacter',rappels:'À rappeler maintenant'};
 function vVisites(){
   const ql=q.trim().toLowerCase();
   const list=visites.filter(v=>{
@@ -1252,8 +1288,8 @@ function vVisites(){
   const rows=mobile?`<div class="lst">${page.map(v=>`<div class="mc ${sel.has(v.id)?'sel':''}" data-open="${v.id}">
       <span class="ck" style="padding-top:2px"><input type="checkbox" data-ck="${v.id}" ${sel.has(v.id)?'checked':''} style="width:auto"></span>
       <div style="flex:1;min-width:0"><div class="who2">${esc(nomClient(v))}</div>
-        <div class="sub">${esc([v.ville,v.dept?'dépt '+v.dept:'',v.type||'B2B'].filter(Boolean).join(' · '))} · ${fmtD(v.date)}</div>
-        <div class="fi">${v.fiche?`<span class="tag">${esc(v.fiche)}</span>`:''}<span class="tag ${vtEtat(v).c}">${esc(vtEtat(v).l)}</span><span class="tag ${v.statut==='Dossier signé'||v.statut==='RDV pris'?'v':''}">${esc(v.statut||'En attente')}</span>${rapportManquant(v)?'<span class="tag r">rapport manquant</span>':(pdfAJoindre(v)?'<span class="tag a">PDF à joindre</span>':'')}${v.audit?'<span class="tag a">synthèse</span>':''}${v.optout?'<span class="tag r">ne pas recontacter</span>':''}</div></div>
+        <div class="sub">${esc([villePrincipale(v),v.cp,v.type||'B2B'].filter(Boolean).join(' · '))} · ${fmtD(v.date)}</div>
+        <div class="fi">${v.fiche?`<span class="tag">${esc(v.fiche)}</span>`:''}<span class="tag ${vtEtat(v).c}">${esc(vtEtat(v).l)}</span><span class="tag ${v.statut==='Dossier signé'||v.statut==='RDV pris'?'v':''}">${esc(v.statut||'En attente')}</span>${rapportManquant(v)?'<span class="tag r">rapport manquant</span>':(pdfAJoindre(v)?'<span class="tag a">PDF à joindre</span>':'')}${complet(v)?'<span class="tag v">✓ complet</span>':''}${v.audit?'<span class="tag a">synthèse</span>':''}${v.optout?'<span class="tag r">ne pas recontacter</span>':''}</div></div>
     </div>`).join('')}${list.length>shown?`<div class="more"><button class="btn g sm" id="bMore">Afficher ${Math.min(pageSize,list.length-shown)} de plus</button></div>`:''}</div>`:'';
   return `
   <div class="card" style="margin-bottom:14px">
@@ -1281,16 +1317,17 @@ function vVisites(){
       <button class="btn g sm" id="bulkClr" style="margin-left:auto">Tout désélectionner</button></div>`:''}
   <div class="sm mut" style="margin:0 0 10px">${list.length} visite${list.length>1?'s':''}${list.length!==visites.length?' sur '+visites.length:''}</div>
   ${list.length?(mobile?rows:`<div class="tw"><table>
-    <thead><tr><th class="ck"><input type="checkbox" id="ckAll" ${allSel?'checked':''} style="width:auto"></th>${th('client','Client')}${th('lieu','Lieu')}${th('fiche','Fiche CEE d\'origine')}${th('date','VT')}${th('etat','État VT')}${th('statut','Suivi')}<th>Rapport</th></tr></thead>
+    <thead><tr><th class="ck"><input type="checkbox" id="ckAll" ${allSel?'checked':''} style="width:auto"></th>${th('client','Client')}${th('lieu','Lieu')}${th('fiche','Fiche CEE d\'origine')}${th('date','VT')}${th('etat','État VT')}${th('statut','Suivi')}<th>Rapport</th><th></th></tr></thead>
     <tbody>${page.map(v=>`<tr data-open="${v.id}" class="${sel.has(v.id)?'sel':''}">
       <td class="ck"><input type="checkbox" data-ck="${v.id}" ${sel.has(v.id)?'checked':''} style="width:auto"></td>
       <td><div class="who2">${esc(nomClient(v))}${v.optout?' <span class="tag r">Ne pas recontacter</span>':''}</div><div class="sub">${v.type||'B2B'}${v.secteur?' · '+esc(v.secteur):''}${v.tel?' · '+esc(v.tel):''}</div></td>
-      <td>${esc(v.ville||'')}<div class="sub">${esc([v.cp,v.dept?'dépt '+v.dept:''].filter(Boolean).join(' · '))}</div></td>
+      <td>${esc(villePrincipale(v))}<div class="sub">${esc(v.cp||'')}</div></td>
       <td>${v.fiche?`<b>${esc(v.fiche)}</b><div class="sub" style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(ficheTitre(v.fiche))}</div>`:'<span class="mut">—</span>'}</td>
       <td>${fmtD(v.date)}${v.donneur_ordre?'<div class="sub">'+esc(v.donneur_ordre)+'</div>':''}</td>
       <td><span class="tag ${vtEtat(v).c}">${esc(vtEtat(v).l)}</span></td>
       <td><span class="tag ${v.statut==='Dossier signé'||v.statut==='RDV pris'?'v':''}">${esc(v.statut||'En attente')}</span></td>
       <td>${v.files&&v.files.length?'<span class="tag v">'+v.files.length+'</span>':(rapportManquant(v)?'<span class="tag r">manquant</span>':(pdfAJoindre(v)?'<span class="tag a">PDF à joindre</span>':'<span class="mut">—</span>'))}</td>
+      <td>${complet(v)?'<span class="ok-dot" title="Dossier complet">✓</span>':''}</td>
     </tr>`).join('')}</tbody></table>
     ${list.length>shown?`<div class="more"><button class="btn g sm" id="bMore">Afficher ${Math.min(pageSize,list.length-shown)} de plus (${list.length-shown} restantes)</button></div>`:''}</div>`)
   :`<div class="empty"><b>${visites.length?'Aucune visite ne correspond':'Aucune visite enregistrée'}</b>${visites.length?'Modifiez la recherche ou les filtres.':'Créez la première avec « Nouvelle visite » ou importez un fichier Excel.'}</div>`}`;
@@ -1322,8 +1359,11 @@ function vTableau(){
   const faites=visites.filter(estFaite).length, prevues=visites.filter(estPrevue).length;
   const manquants=visites.filter(rapportManquant).length;
   const ajoindre=visites.filter(pdfAJoindre).length;
+  const avecR=visites.filter(v=>v.files&&v.files.length).length;
+  const pctR=faites?Math.round(avecR/faites*100):0;
   const incidents=visites.filter(v=>['Reportée','Annulée','Non concluante'].includes(vtEtatN(v))).length;
   const st=s=>visites.filter(v=>(v.statut||'En attente')===s).length;
+  const fmtSem=d=>{const x=new Date(d);return x.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'});};
   const rappels=visites.filter(v=>v.rappel&&v.rappel<=t&&!v.optout).length;
   const signes=st('Dossier signé'), traites=visites.filter(v=>['Rappelé','RDV pris','Dossier signé','Refus'].includes(v.statut)).length;
   const taux=traites?Math.round(signes/traites*100):0;
@@ -1332,7 +1372,7 @@ function vTableau(){
   const tile=(v,k,s,per,stat,cls)=>`<div class="tile2 ${cls||''}" data-per="${per||''}" ${stat?'data-stat="'+stat+'"':''}><div class="v">${v}</div><div><div class="k">${k}</div>${s?`<div class="s">${s}</div>`:''}</div></div>`;
 
   const NS=5;const sems=[];for(let i=NS-1;i>=0;i--){const d=new Date(lundi);d.setDate(d.getDate()-i*7);const a=d.toISOString().slice(0,10);const e=new Date(d);e.setDate(e.getDate()+6);const z=e.toISOString().slice(0,10);sems.push({a,z,n:visites.filter(v=>v.date>=a&&v.date<=z).length});}
-  const maxS=Math.max(1,...sems.map(s=>s.n)), moy=Math.round(sems.reduce((s,x)=>s+x.n,0)/NS*10)/10;
+  const maxS=Math.max(1,...sems.map(s=>s.n)), record=Math.max(...sems.map(s=>s.n)), moy=Math.round(sems.reduce((s,x)=>s+x.n,0)/NS*10)/10;
 
   const tech={};visites.filter(estFaite).forEach(v=>{if(!v.technicien)return;const o=tech[v.technicien]=tech[v.technicien]||{n:0,r:0};o.n++;if(v.files&&v.files.length)o.r++;});
   const techs=Object.entries(tech).sort((a,b)=>b[1].n-a[1].n);
@@ -1344,33 +1384,36 @@ function vTableau(){
   return `
   ${manquants||rappels?`<div style="margin-bottom:16px">
     ${manquants?`<div class="alert" data-per="sansrapport"><b class="sm">${manquants} VT effectuée${manquants>1?'s':''} sans rapport joint</b><span class="d">à régulariser</span></div>`:''}
-    ${rappels?`<div class="alert" style="background:var(--ambre-pale);border-color:var(--ambre-trait)" data-per="rappels"><b class="sm">${rappels} rappel${rappels>1?'s':''} échu${rappels>1?'s':''}</b><span class="d" style="color:var(--ambre)">à traiter</span></div>`:''}
-  </div>`:''}
+    ${rappels?`<div class="alert" style="background:var(--ambre-pale);border-color:var(--ambre-trait)" data-per="rappels"><b class="sm">${rappels} client${rappels>1?'s':''} à rappeler dès maintenant</b><span class="d" style="color:var(--ambre)">à traiter</span></div>`:''}
+  </div>`:`<div class="alert" style="background:var(--vert-pale);border-color:#CDE4DC;margin-bottom:16px;cursor:default"><b class="sm">Tout est à jour — aucun rapport en attente, aucun rappel en retard.</b></div>`}
 
   <div class="secth"><h2>Activité VT</h2><span>${n} visites au total</span></div>
   <div class="tiles">
     ${tile(sem,'VT cette semaine','','semaine',null,'dark')}
-    ${tile(mois,'VT ce mois','','mois')}
-    ${tile(faites,'VT effectuées','','realisees')}
-    ${tile(prevues,'VT à venir','','avenir')}
-    ${tile(manquants,'Rapport manquant','','sansrapport',null,manquants?'al':'')}
-    ${tile(ajoindre,'PDF à joindre','rapport annoncé reçu','pdfajoindre',null,ajoindre?'hi':'')}
+    ${tile(mois,'VT ce mois','','mois',null,'ok')}
+    ${tile(faites,'VT effectuées','','realisees',null,'ok')}
+    ${tile(prevues,'VT à venir','à réaliser','avenir',null,'blue')}
+    ${tile(avecR,'Rapports récupérés',pctR+' % des VT effectuées','avecrapport',null,'ok')}
+    ${tile(manquants,'Rapports à obtenir','','sansrapport',null,manquants?'al':'ok')}
+    ${tile(ajoindre,'PDF à joindre','rapport annoncé reçu','pdfajoindre',null,ajoindre?'hi':'ok')}
     ${tile(incidents,'Reportées ou annulées','','reportees',null,incidents?'hi':'')}
   </div>
 
-  <div class="card" style="margin-bottom:16px">
-    <div class="secth" style="margin:0 0 4px"><h2>Cadence</h2><span>5 dernières semaines · ${moy} VT par semaine en moyenne</span></div>
-    <div class="spark">${sems.map((s,i)=>`<i class="${i===NS-1?'last':''}" style="height:${Math.max(3,Math.round(s.n/maxS*100))}%" title="${s.n} VT"><b>${s.n}</b></i>`).join('')}</div>
+  <div class="card cadence" style="margin-bottom:16px">
+    <div class="secth" style="margin:0 0 14px"><h2>Cadence</h2><span>5 dernières semaines · ${moy} VT par semaine en moyenne</span></div>
+    <div class="spark">${sems.map((s,i)=>`<div class="sbar"><div class="sv">${s.n}</div><i class="${i===NS-1?'last':''}" style="height:${Math.max(6,Math.round(s.n/maxS*100))}%"></i><div class="sl">${i===NS-1?'en cours':fmtSem(s.a)}</div></div>`).join('')}</div>
+    ${sems[NS-1].n>=moy?`<div class="sgoal ok">Semaine au-dessus de la moyenne. ${record>sems[NS-1].n?'Record à battre : '+record+' VT.':'Meilleure semaine de la période.'}</div>`
+      :`<div class="sgoal">${Math.ceil(moy-sems[NS-1].n)} VT de plus pour dépasser la moyenne. Record de la période : ${record} VT.</div>`}
   </div>
 
   <div class="secth"><h2>Exploitation de la base</h2><span>ce que les VT rapportent ensuite</span></div>
   <div class="tiles">
     ${tile(st('À rappeler'),'À retravailler','','',"À rappeler",st('À rappeler')?'hi':'')}
-    ${tile(rappels,'Rappels échus','','rappels',null,rappels?'al':'')}
-    ${tile(st('RDV pris'),'RDV pris','','',"RDV pris")}
+    ${tile(rappels,'À rappeler maintenant','date de rappel dépassée','rappels',null,rappels?'hi':'ok')}
+    ${tile(st('RDV pris'),'RDV pris','','',"RDV pris",st('RDV pris')?'ok':'')}
     ${tile(signes,'Dossiers signés','','',"Dossier signé",signes?'ok':'')}
     ${tile(taux+'%','Transformation','sur '+traites+' dossiers traités','')}
-    ${tile(visites.filter(v=>v.audit).length,'Synthèses lues','','synthese')}
+    ${tile(visites.filter(v=>v.audit).length,'Synthèses lues','','synthese',null,'ok')}
   </div>
 
   ${agenda.length?`<div class="card" style="margin-bottom:14px"><h2 style="margin-bottom:8px">VT des 7 prochains jours</h2>${agenda.map(v=>`<div style="display:flex;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid #F1F4F3;cursor:pointer" data-open="${v.id}"><span class="tag ${v.date===t?'v':'a'}" style="min-width:86px;text-align:center">${v.date===t?'Aujourd\'hui':fmtD(v.date)}</span><b class="sm">${esc(nomClient(v))}</b><span class="sm mut">${esc([v.ville,v.fiche].filter(Boolean).join(' · '))}</span>${v.technicien?'<span class="xs mut" style="margin-left:auto">'+esc(v.technicien)+'</span>':''}</div>`).join('')}</div>`:''}
@@ -1430,6 +1473,7 @@ async function chercherSiret(raw){
 async function analyserRapport(v){
   const docs=[];
   for(const f of (v.files||[])){
+    if(f.demo) continue;
     const d=await Store.get(fk(f.id)); if(!d) continue;
     const t=(d.type||'').toLowerCase();
     if(t==='application/pdf') docs.push({type:'document',source:{type:'base64',media_type:'application/pdf',data:d.b64}});
@@ -1560,6 +1604,10 @@ const vtEtat=v=>({l:vtEtatN(v),c:ETAT_CLS[vtEtatN(v)]||''});
 const estFaite=v=>['Effectuée','Rapport reçu','Non concluante'].includes(vtEtatN(v));
 const estPrevue=v=>['Demandée','Planifiée','Technicien envoyé','Reportée'].includes(vtEtatN(v));
 const rapportManquant=v=>vtEtatN(v)==='Effectuée'&&!(v.files&&v.files.length);
+const VILLE_POLE={'01':'Bourg-en-Bresse','02':'Saint-Quentin','03':'Montluçon','04':'Digne','05':'Gap','06':'Nice','07':'Valence','08':'Charleville','09':'Foix','10':'Troyes','11':'Carcassonne','12':'Rodez','13':'Marseille','14':'Caen','15':'Aurillac','16':'Angoulême','17':'La Rochelle','18':'Bourges','19':'Brive','21':'Dijon','22':'Saint-Brieuc','23':'Guéret','24':'Périgueux','25':'Besançon','26':'Valence','27':'Évreux','28':'Chartres','29':'Brest','2A':'Ajaccio','2B':'Bastia','30':'Nîmes','31':'Toulouse','32':'Auch','33':'Bordeaux','34':'Montpellier','35':'Rennes','36':'Châteauroux','37':'Tours','38':'Grenoble','39':'Dole','40':'Mont-de-Marsan','41':'Blois','42':'Saint-Étienne','43':'Le Puy','44':'Nantes','45':'Orléans','46':'Cahors','47':'Agen','48':'Mende','49':'Angers','50':'Cherbourg','51':'Reims','52':'Chaumont','53':'Laval','54':'Nancy','55':'Verdun','56':'Vannes','57':'Metz','58':'Nevers','59':'Lille','60':'Beauvais','61':'Alençon','62':'Arras','63':'Clermont-Ferrand','64':'Pau','65':'Tarbes','66':'Perpignan','67':'Strasbourg','68':'Mulhouse','69':'Lyon','70':'Vesoul','71':'Mâcon','72':'Le Mans','73':'Chambéry','74':'Annecy','75':'Paris','76':'Rouen','77':'Melun','78':'Versailles','79':'Niort','80':'Amiens','81':'Albi','82':'Montauban','83':'Toulon','84':'Avignon','85':'La Roche-sur-Yon','86':'Poitiers','87':'Limoges','88':'Épinal','89':'Auxerre','90':'Belfort','91':'Évry','92':'Nanterre','93':'Bobigny','94':'Créteil','95':'Cergy','97':'Outre-mer','98':'Outre-mer'};
+const DOM_POLE={'971':'Pointe-à-Pitre','972':'Fort-de-France','973':'Cayenne','974':'Saint-Denis','976':'Mamoudzou'};
+const villePrincipale=v=>{const cp=String(v.cp||'');if(cp.startsWith('97')||cp.startsWith('98'))return DOM_POLE[cp.slice(0,3)]||v.ville||'';if(cp.startsWith('20'))return (+cp<20200?'Ajaccio':'Bastia');return VILLE_POLE[cp.slice(0,2)]||v.ville||'';};
+const complet=v=>!!(v.files&&v.files.length&&v.audit&&v.fiche&&v.tel&&(v.statut&&v.statut!=='En attente'));
 const pdfAJoindre=v=>vtEtatN(v)==='Rapport reçu'&&!(v.files&&v.files.length);
 const joursDepuis=d=>d?Math.floor((Date.now()-new Date(d).getTime())/864e5):0;
 function pistes(v){
@@ -1666,8 +1714,10 @@ function detail(id){
     v.statut=document.getElementById('dstat').value;v.rappel=document.getElementById('drap').value;v.confirme_par=user.nom;v.updatedAt=Date.now();
     await save();closeModal();render();toast('Fiche enregistrée');});
   on('dadd',async()=>{const t=document.getElementById('dnote').value.trim();if(!t)return;v.suivi=v.suivi||[];v.suivi.push({d:new Date().toISOString().slice(0,10),par:user.nom,t});await save();closeModal();setTimeout(()=>detail(id),240);});
-  on('bDel',async()=>{if(!confirm('Supprimer cette visite et ses fichiers ?'))return;for(const f of(v.files||[]))await Store.del(fk(f.id));visites=visites.filter(x=>x.id!==id);await save();closeModal();render();toast('Visite supprimée');});
-  m.querySelectorAll('[data-dl]').forEach(b=>b.onclick=async()=>{const f=(v.files||[]).find(x=>x.id===b.dataset.dl);const d=await Store.get(fk(f.id));if(!d){toast('Fichier introuvable');return;}
+  on('bDel',async()=>{if(!confirm('Supprimer cette visite et ses fichiers ?'))return;for(const f of(v.files||[]))if(!f.demo)await Store.del(fk(f.id));visites=visites.filter(x=>x.id!==id);await save();closeModal();render();toast('Visite supprimée');});
+  m.querySelectorAll('[data-dl]').forEach(b=>b.onclick=async()=>{const f=(v.files||[]).find(x=>x.id===b.dataset.dl);
+    let d=f.demo?{b64:miniPDF(f.lignes||['Rapport de visite technique']),type:'application/pdf'}:await Store.get(fk(f.id));
+    if(!d){toast('Fichier introuvable');return;}
     const bin=atob(d.b64),arr=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);const url=URL.createObjectURL(new Blob([arr],{type:d.type||'application/octet-stream'}));
     const a=document.createElement('a');a.href=url;a.download=f.name;a.click();setTimeout(()=>URL.revokeObjectURL(url),4000);});
 }
@@ -1747,7 +1797,13 @@ document.getElementById('bNewM').onclick=()=>formVisite(null);
 let rsz;window.addEventListener('resize',()=>{clearTimeout(rsz);rsz=setTimeout(()=>{if(user&&view==='visites')render();},200);});
 document.getElementById('bOut').onclick=async()=>{user=null;try{await Store.del(KS);}catch(e){}gateOut();};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeDrawer();closeAssist();}});
-(async()=>{try{await load();}catch(e){}let s=null;try{s=await Store.get(KS);}catch(e){}if(s&&ACCES.find(a=>a.login===s.login)){user=s;enter();}else gate();})();
+(async()=>{
+  let s=null;try{s=await Store.get(KS);}catch(e){}
+  const connu=s&&ACCES.find(a=>a.login===s.login);
+  if(!connu)gate();
+  try{await load();}catch(e){}
+  if(connu){user=s;enter();}
+})();
 </script>
 </body>
 </html>
