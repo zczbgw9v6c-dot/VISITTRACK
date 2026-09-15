@@ -267,6 +267,39 @@ td .sub{font-size:12px;color:var(--encre-3)}
 .alert .d{margin-left:auto;font-size:12px;color:var(--rouge);font-weight:600;white-space:nowrap}
 .rank{display:flex;align-items:center;gap:12px;padding:7px 0;border-bottom:1px solid #F1F4F3}
 .rank .p{width:22px;height:22px;border-radius:50%;background:var(--fond);font-size:11.5px;display:flex;align-items:center;justify-content:center;color:var(--encre-3);flex:0 0 22px}
+/* assistant */
+.abtn{position:fixed;right:18px;bottom:18px;z-index:45;width:54px;height:54px;border-radius:50%;background:var(--encre);color:#fff;border:0;cursor:pointer;box-shadow:0 8px 24px rgba(26,39,39,.28);display:flex;align-items:center;justify-content:center;transition:transform .15s}
+.abtn:hover{transform:scale(1.06)}
+.abtn:active{transform:scale(.95)}
+.abtn svg{width:24px;height:24px}
+.aovl{position:fixed;inset:0;background:rgba(26,39,39,.42);z-index:95;display:flex;align-items:flex-end;justify-content:flex-end;padding:0 18px 18px;animation:ovin .25s ease}
+.aovl.closing{animation:ovout .18s ease forwards}
+.apane{width:min(420px,100%);height:min(620px,82vh);background:var(--carte);border-radius:16px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 50px rgba(26,39,39,.3);animation:apop .28s cubic-bezier(.2,.8,.2,1)}
+.aovl.closing .apane{animation:apopout .18s ease forwards}
+@keyframes apop{from{transform:translateY(20px) scale(.97);opacity:0}to{transform:none;opacity:1}}
+@keyframes apopout{to{transform:translateY(12px);opacity:0}}
+.ahead{display:flex;align-items:baseline;gap:10px;padding:14px 16px;border-bottom:1px solid var(--trait)}
+.abody{flex:1;overflow:auto;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.avide{color:var(--encre-3);font-size:13.5px;text-align:center;margin:auto;line-height:1.7}
+.amsg{max-width:92%;padding:10px 13px;border-radius:12px;font-size:14px;line-height:1.5}
+.amsg.u{align-self:flex-end;background:var(--encre);color:#fff;border-bottom-right-radius:4px}
+.amsg.a{align-self:flex-start;background:var(--fond);border:1px solid var(--trait);border-bottom-left-radius:4px}
+.ares{margin-top:8px;display:flex;flex-direction:column;gap:4px}
+.ait{background:#fff;border:1px solid var(--trait);border-radius:8px;padding:7px 10px;cursor:pointer;display:flex;flex-direction:column}
+.ait:hover{border-color:var(--vert)}
+.ait b{font-size:13px}
+.ait span{font-size:11.5px;color:var(--encre-3)}
+.asugg{display:flex;gap:6px;overflow-x:auto;padding:8px 16px;border-top:1px solid var(--trait)}
+.asugg .chip{white-space:nowrap}
+.ain{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--trait)}
+.ain input{flex:1}
+.ain .btn{padding:9px 16px}
+/* visite guidée */
+.tovl{position:fixed;inset:0;z-index:120}
+.tovl::before{content:'';position:absolute;inset:0;background:rgba(13,24,24,.62)}
+.thole{position:absolute;border-radius:12px;box-shadow:0 0 0 9999px rgba(13,24,24,.62);border:2px solid var(--vert-clair);animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 9999px rgba(13,24,24,.62),0 0 0 0 rgba(141,194,114,.5)}50%{box-shadow:0 0 0 9999px rgba(13,24,24,.62),0 0 0 10px rgba(141,194,114,0)}}
+.tcard{position:absolute;width:min(330px,88vw);background:var(--carte);border-radius:14px;padding:16px;box-shadow:0 16px 40px rgba(0,0,0,.3)}
 /* catalogue & stats */
 .cat{display:grid;grid-template-columns:1fr;gap:4px}
 .crow{display:flex;gap:12px;align-items:center;padding:8px 12px;border-radius:8px;background:var(--carte);border:1px solid var(--trait);cursor:pointer}
@@ -290,6 +323,9 @@ td .sub{font-size:12px;color:var(--encre-3)}
 
 @media(max-width:700px){
   #bNew{display:none}
+  .abtn{right:14px;bottom:calc(84px + env(safe-area-inset-bottom));width:48px;height:48px}
+  .aovl{padding:0}
+  .apane{height:88vh;width:100%;border-radius:16px 16px 0 0}
   .fab{display:flex;position:fixed;right:16px;bottom:calc(18px + env(safe-area-inset-bottom));z-index:40;box-shadow:0 8px 24px rgba(26,39,39,.28);padding:13px 18px;border-radius:999px;font-size:15px}
   .stats{grid-template-columns:repeat(2,1fr)}
   .tiles{grid-template-columns:repeat(2,1fr);gap:10px}
@@ -330,6 +366,9 @@ td .sub{font-size:12px;color:var(--encre-3)}
 </div></div>
 <div class="wrap" id="view"></div>
 <button class="btn fab" id="bNewM">+ Nouvelle visite</button>
+<button class="abtn" id="bAssist" aria-label="Recherche"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.2-3.2"/></svg></button>
+<div id="assist"></div>
+<div id="tour"></div>
 <div id="drawer"></div>
 <div id="modal"></div>
 </div>
@@ -341,7 +380,7 @@ td .sub{font-size:12px;color:var(--encre-3)}
    (voir le brief transmis au développeur). Ne pas déployer tel quel.
    ===================================================================== */
 const ACCES = [
-  { login:'VT-100', mdp:'2026', nom:'Bratan',       role:'direction' },
+  { login:'VT-100', mdp:'2026', nom:'Eythan',       role:'direction' },
   { login:'VT-200', mdp:'2026', nom:'Amir',         role:'direction' },
   { login:'VT-300', mdp:'2026', nom:'Saisie',       role:'confirmateur' }
 ];
@@ -556,7 +595,7 @@ function miniPDF(lines){
 const DEMO=[
  // 0 type 1 raison 2 prénom 3 nom 4 tél 5 mail 6 adresse 7 cp 8 ville 9 secteur 10 fiche 11 décalage j 12 technicien 13 donneur d'ordre
  // 14 ÉTAT VT 15 statut commercial 16 résumé 17 chauffage 18 surfaces 19 bâtiment 20 équipements 21 points 22 conclusion 23 options
- ['B2B','Scierie des Hauts Bois','Marc','Lefèvre','06 12 45 78 90','contact@scierie-hautsbois.fr','12 route de la Forêt','88400','Gérardmer','Scierie','AGRI-EQ-110',-42,'Julien R.','Solaris Énergie','Rapport reçu','À rappeler',
+ ['B2B','Scierie des Hauts Bois','Marc','Lefèvre','06 12 45 78 90','contact@scierie-hautsbois.fr','12 route de la Forêt','88400','Gérardmer','Scierie','AGRI-EQ-110',-42,'Fabien D.','Solaris Énergie','Rapport reçu','À rappeler',
   'Scierie familiale de 9 salariés produisant du sapin et de l\'épicéa de charpente. Le séchage se fait dans un bâtiment fermé de 1 100 m² abritant trois cellules, alimentées par un générateur d\'air chaud au propane de 2011. La toiture bac acier de 780 m² est orientée plein sud sans aucun masque. Le gérant est propriétaire des murs et cherche à réduire une facture propane d\'environ 38 000 € par an.',
   'propane — générateur d\'air chaud 2011, 2 cuves de 3 000 L','bâtiment de séchage fermé 1 100 m² · toiture exploitable 780 m² · surface équipable retenue 620 m² (80 %)','hangar bois 2009, bardage bois, bac acier non isolé, pente 15 %, orientation sud','3 cellules de séchage · 2 ventilateurs 15 kW · 1 générateur air chaud 300 kW · raccordement 250 kVA',
   ['Produits séchés : bois résineux (catégorie forestière)','Séchage basse température 35–40 °C compatible système neuf','Consommation propane ≈ 38 000 €/an','Volume séché ≈ 4 200 m³/an'],
@@ -574,7 +613,7 @@ const DEMO=[
   ['Radiateurs fonte compatibles PAC basse température','Emplacement extérieur disponible côté nord','Murs non isolés : perte principale restante','Revenus modestes déclarés'],
   'PAC air/eau 11 kW adaptée en remplacement complet de la chaudière fioul. À prévoir : neutralisation de la cuve.',{}],
 
- ['B2B','Hôtel Le Belvédère','Nadia','Benali','04 93 55 12 34','direction@belvedere-nice.fr','18 promenade des Anglais','06000','Nice','Hôtellerie','BAT-TH-122',-200,'Julien R.','Clim Azur','Rapport reçu','RDV pris',
+ ['B2B','Hôtel Le Belvédère','Nadia','Benali','04 93 55 12 34','direction@belvedere-nice.fr','18 promenade des Anglais','06000','Nice','Hôtellerie','BAT-TH-122',-200,'Fabien D.','Clim Azur','Rapport reçu','RDV pris',
   'Hôtel trois étoiles de 64 chambres sur cinq niveaux, ouvert toute l\'année avec un pic d\'occupation d\'avril à octobre. Chaque chambre est climatisée par un split individuel sans aucune programmation : les unités tournent fréquemment chambres vides. Le chauffage central est assuré par une chaudière gaz de 2008. L\'éclairage des parties communes reste en halogène. Aucune gestion technique centralisée.',
   'gaz — chaudière 2008, 350 kW · climatisation électrique par splits','surface chauffée et climatisée 3 200 m² · 64 chambres · restaurant 180 m²','immeuble 1965, 5 niveaux, toiture terrasse 640 m², DV sur 60 % des ouvrants','64 splits (2012–2016) · chaudière 350 kW · 120 luminaires halogènes · 2 ascenseurs',
   ['Programmateurs d\'intermittence sur 64 unités','Toiture terrasse 640 m² libre','Direction motivée par les coûts d\'été','Pas de GTB : opération complémentaire naturelle'],
@@ -598,7 +637,7 @@ const DEMO=[
   ['Splits énergivores, à remplacer','Toiture tôle exploitable en solaire thermique','Bonification ZNI applicable','Famille nombreuse : besoin ECS élevé'],
   'Remplacement des 4 splits par des unités inverter. Piste immédiate : chauffe-eau solaire individuel.',{optout:true,note:'Ne souhaite plus être contactée : travaux reportés sine die.'}],
 
- ['B2B','Minoterie Gauthier','Vincent','Gauthier','02 38 44 55 66','direction@minoterie-gauthier.fr','Route de Chartres','45300','Pithiviers','Agroalimentaire','IND-UT-102',-110,'Mehdi K.','Motors & Drives','Rapport reçu','Injoignable',
+ ['B2B','Minoterie Gauthier','Vincent','Gauthier','02 38 44 55 66','direction@minoterie-gauthier.fr','Route de Chartres','45300','Pithiviers','Agroalimentaire','IND-UT-102',-110,'Romain T.','Motors & Drives','Rapport reçu','Injoignable',
   'Minoterie de 3 400 m² écrasant 45 000 tonnes de blé par an, en fonctionnement 6 000 heures. Vingt-quatre moteurs asynchrones de 5 à 45 kW entraînent broyeurs, élévateurs et ventilateurs, tous en démarrage direct. Deux compresseurs de 55 kW alimentent le réseau d\'air comprimé.',
   'électrique — 630 kVA souscrits, ≈ 2,9 GWh/an','usine 3 400 m² · silos 12 000 t · bureaux 180 m²','bâtiment 1970 avec extension 2004, hauteur 12 m, silos béton','24 moteurs (total 480 kW) · 2 compresseurs 55 kW · 6 000 h/an',
   ['Fort potentiel de variateurs','Fonctionnement quasi continu','Fuites d\'air comprimé constatées','Décision en binôme gérant / production'],
@@ -606,14 +645,14 @@ const DEMO=[
 
  ['B2B','Métallerie Brun & Fils','Laurent','Brun','04 76 22 33 44','','12 rue de l\'Industrie','38100','Grenoble','Métallerie','IND-BA-110',-6,'Karim B.','Air & Chaleur Alpes','Effectuée','En attente','','','','','',[],'',{note:'VT réalisée, le technicien doit encore transmettre son rapport.'}],
 
- ['B2C','','Sylvain','Roche','06 33 44 55 66','','22 rue du Moulin','63000','Clermont-Ferrand','Maison individuelle','BAR-EN-101',-3,'Julien R.','Auvergne Isolation','Effectuée','En attente','','','','','',[],'',{}],
+ ['B2C','','Sylvain','Roche','06 33 44 55 66','','22 rue du Moulin','63000','Clermont-Ferrand','Maison individuelle','BAR-EN-101',-3,'Fabien D.','Auvergne Isolation','Effectuée','En attente','','','','','',[],'',{}],
 
  ['B2B','Camping Les Flots Bleus','Céline','Marchand','05 46 77 88 99','contact@flotsbleus17.fr','Route de la Plage','17570','La Tremblade','Hôtellerie de plein air','BAT-EN-101',9,'Yann L.','Atlantique Isolation','Reportée','En attente','','','','','',[],'',
   {histo:[{j:-4,de:'Planifiée',vers:'Reportée',ancienne:-2,motif:'gérante absente, reprise après la saison'}]}],
 
- ['B2B','Serres Horticoles Ducasse','Olivier','Ducasse','06 12 34 56 78','','Route de Saint-Omer','62500','Saint-Omer','Horticulture','AGRI-EQ-102',0,'Mehdi K.','Serres Nord','Technicien envoyé','En attente','','','','','',[],'',{}],
+ ['B2B','Serres Horticoles Ducasse','Olivier','Ducasse','06 12 34 56 78','','Route de Saint-Omer','62500','Saint-Omer','Horticulture','AGRI-EQ-102',0,'Romain T.','Serres Nord','Technicien envoyé','En attente','','','','','',[],'',{}],
 
- ['B2C','','Nathalie','Weber','06 44 55 66 77','','8 rue des Vosges','67000','Strasbourg','Maison individuelle','BAR-TH-171',6,'Julien R.','Alsace Chauffage','Planifiée','En attente','','','','','',[],'',{}],
+ ['B2C','','Nathalie','Weber','06 44 55 66 77','','8 rue des Vosges','67000','Strasbourg','Maison individuelle','BAR-TH-171',6,'Fabien D.','Alsace Chauffage','Planifiée','En attente','','','','','',[],'',{}],
 
  ['B2B','Coopérative Laitière du Ségala','Pierre','Delmas','05 65 11 22 33','','Route de Rodez','12000','Rodez','Élevage laitier','AGRI-TH-104',0,'','Froid Occitanie','Demandée','En attente','','','','','',[],'',
   {note:'Demande reçue du donneur d\'ordre, technicien et date à caler.'}],
@@ -621,7 +660,7 @@ const DEMO=[
  ['B2B','Entrepôt Frigorifique Jarry','Sandra','Bernier','06 90 22 33 44','','Zone de Jarry','97122','Baie-Mahault','Logistique frigorifique','BAT-TH-122',-14,'Ludovic M.','Antilles Clim','Annulée','En attente','','','','','',[],'',
   {histo:[{j:-14,de:'Planifiée',vers:'Annulée',motif:'site vendu, nouveau propriétaire non intéressé'}]}],
 
- ['B2C','','Karim','Bouzid','06 22 33 44 55','','5 allée des Chênes','93200','Saint-Denis','Appartement','BAR-TH-127',-20,'Mehdi K.','Île-de-France Ventilation','Non concluante','En attente',
+ ['B2C','','Karim','Bouzid','06 22 33 44 55','','5 allée des Chênes','93200','Saint-Denis','Appartement','BAR-TH-127',-20,'Romain T.','Île-de-France Ventilation','Non concluante','En attente',
   'Appartement de 62 m² au 4e étage sans ascenseur. Le technicien n\'a pas pu accéder aux gaines techniques, fermées par la copropriété. Chauffage collectif gaz, aucune ventilation mécanique constatée dans les pièces humides.',
   'gaz collectif','62 m²','immeuble 1971, copropriété de 48 lots','aucune VMC · gaines inaccessibles',
   ['Accord du syndic nécessaire avant toute intervention','Condensation visible en salle de bains'],
@@ -659,12 +698,329 @@ async function chargerDemo(){
     if(statut==='Dossier signé')v.suivi.push({d:iso(now.getTime()-6*864e5),par:v.confirme_par||'Bratan',t:'Devis signé, dossier transmis à l\'obligé.'});
     visites.push(v);
   }
+  await chargerDemoSup();
   await save();
 }
+
+/* VT supplémentaires générées — réseau élargi de VT-men */
+const TECHS_SUP=['Alexandre P.','Yacine B.','Sofiane M.','Grégory L.','Nabil A.','Thomas V.','Kevin D.','Mourad S.','Jonathan R.','Cédric N.','Farid H.','Bastien C.','Anthony G.','Steve M.'];
+const CLIENTS_SUP=[
+ ['B2B','Exploitation Deblois','Henri','Deblois','03 25 44 11 22','Route de Troyes','10000','Troyes','Céréaliculture','AGRI-EQ-101'],
+ ['B2C','','Sylvie','Marquadet','06 78 22 11 45','14 rue des Lilas','51100','Reims','Maison individuelle','BAR-TH-171'],
+ ['B2B','Transports Vergne','Michel','Vergne','05 55 11 22 33','ZI Nord','87000','Limoges','Transport routier','TRA-SE-104'],
+ ['B2B','Fromagerie du Causse','Anne','Salvat','05 65 77 88 11','Route du Causse','12100','Millau','Agroalimentaire','IND-UT-102'],
+ ['B2C','','Patrick','Lemercier','06 11 77 88 99','3 allée des Roses','76000','Rouen','Maison individuelle','BAR-EN-101'],
+ ['B2B','Garage Oceane','Yves','Le Goff','02 98 11 22 33','Rue du Port','29200','Brest','Automobile','BAT-EQ-127'],
+ ['B2B','Serres du Val','Julie','Perrin','04 75 22 33 44','Chemin du Val','26000','Valence','Horticulture','AGRI-EQ-102'],
+ ['B2C','','Djamel','Bencherif','06 44 11 22 77','8 rue Jean Jaurès','93100','Montreuil','Appartement','BAR-TH-127'],
+ ['B2B','Menuiserie Lacroix','Serge','Lacroix','03 88 22 11 44','ZA Est','67100','Strasbourg','Menuiserie','IND-BA-110'],
+ ['B2B','Camping du Lac','Marion','Faure','04 79 11 44 22','Route du Lac','73100','Aix-les-Bains','Hôtellerie de plein air','BAT-EN-101'],
+ ['B2B','Élevage Brunet','Alain','Brunet','02 43 55 66 11','La Petite Ferme','53000','Laval','Élevage laitier','AGRI-TH-104'],
+ ['B2C','','Nadège','Simon','06 99 88 77 11','21 rue Pasteur','59000','Lille','Maison individuelle','BAR-TH-113'],
+ ['B2B','Pressing Central','Hocine','Kader','01 48 22 33 44','12 av. de la République','94200','Ivry-sur-Seine','Blanchisserie','IND-UT-102'],
+ ['B2B','Scierie du Morvan','Luc','Perreau','03 86 11 22 55','Route forestière','58000','Nevers','Scierie','AGRI-EQ-110'],
+ ['B2B','Hôtel des Dunes','Emma','Caron','02 35 44 11 66','Front de mer','14800','Deauville','Hôtellerie','BAT-TH-122'],
+ ['B2C','','Rachid','Moussaoui','06 33 11 99 44','5 impasse Verte','13010','Marseille','Maison individuelle','BAR-TH-129'],
+ ['B2B','Coopérative Agricole Ouest','Gilles','Rio','02 97 11 33 55','Route de Vannes','56000','Vannes','Céréaliculture','AGRI-EQ-101'],
+ ['B2B','Clinique Saint-Jean','Claire','Mounier','04 67 22 11 33','Av. de la Liberté','34000','Montpellier','Santé','BAT-TH-116'],
+ ['B2B','Logistique Rhône','Paul','Achard','04 72 11 22 99','ZI Sud','69800','Saint-Priest','Logistique','BAT-EN-101'],
+ ['B2C','','Christine','Vasseur','06 12 99 33 22','7 rue du Moulin','80000','Amiens','Maison individuelle','BAR-EN-101'],
+ ['B2B','Domaine Viticole Castel','Hugo','Castel','05 57 11 44 88','Route des Vignes','33500','Libourne','Viticulture','IND-UT-102'],
+ ['B2B','Boucherie Moderne','Samir','Ait','04 91 33 22 11','15 bd Michelet','13008','Marseille','Commerce alimentaire','BAT-TH-116'],
+ ['B2B','Pépinière Verte','Laure','Blanc','04 94 22 11 55','Chemin des Oliviers','83000','Toulon','Horticulture','AGRI-TH-119'],
+ ['B2C','','Olivier','Ferrand','06 55 44 33 11','9 rue Carnot','42000','Saint-Étienne','Maison individuelle','BAR-TH-171'],
+ ['B2B','Atelier Métal Nord','Frank','Dujardin','03 20 11 55 77','ZI de Roubaix','59100','Roubaix','Métallerie','IND-BA-110'],
+ ['B2B','Ferme des Trois Chênes','Céline','Ory','02 47 22 88 11','Route de Tours','37000','Tours','Élevage','AGRI-TH-104'],
+ ['B2B','Supérette Bel Air','Karim','Nedjar','01 60 11 22 88','Centre commercial','77000','Melun','Commerce','BAT-TH-116'],
+ ['B2B','Scierie Lacoste','Bruno','Lacoste','05 59 22 44 11','Route des Pyrénées','64400','Oloron','Scierie','AGRI-EQ-110']
+];
+async function chargerDemoSup(){
+  const now=new Date(), iso=t=>new Date(t).toISOString().slice(0,10);
+  const doss=['Solaris Énergie','Fleet Services','Serres Provence','Air & Chaleur Alpes','Ouest Régulation','Antilles Clim','Motors & Drives'];
+  const rnd=(a)=>a[Math.floor(Math.random()*a.length)];
+  CLIENTS_SUP.forEach((c,i)=>{
+    const [type,rs,pre,nom,tel,adr,cp,ville,sect,fiche]=c;
+    const off=-Math.floor(Math.random()*95)-2;
+    const date=iso(now.getTime()+off*864e5);
+    const OVR={'Exploitation Deblois':'Yacine B.','Marquadet':'Yacine B.','Transports Vergne':'Alexandre P.','Fromagerie du Causse':'Alexandre P.'};
+    const tech=OVR[rs]||OVR[nom]||TECHS_SUP[i%TECHS_SUP.length];
+    const r=Math.random();
+    let etat=r<.62?'Rapport reçu':r<.82?'Effectuée':r<.9?'Reportée':'Rapport reçu';
+    if(rs==='Exploitation Deblois'||nom==='Marquadet')etat='Effectuée';
+    const v={id:uid(),createdAt:now.getTime()+off*864e5,type,raison_sociale:rs,
+      siret:type==='B2B'?String(Math.floor(1e13+Math.random()*9e13)):'',naf:'',prenom:pre,nom,tel,email:'',
+      adresse:adr,cp,ville,dept:deptOf(cp),secteur:sect,fiche,date,technicien:tech,donneur_ordre:rnd(doss),
+      notes:'',etat,statut:'En attente',optout:false,saisi_par:'Confirmateur',files:[],suivi:[],demo:true};
+    if(etat==='Rapport reçu'){
+      const name='VT_'+(rs||nom).replace(/[^a-z0-9]/gi,'_')+'_'+date+'.pdf';
+      const b64=miniPDF(['RAPPORT DE VISITE TECHNIQUE — '+fiche,'Client : '+(rs||pre+' '+nom),'Adresse : '+adr+', '+cp+' '+ville,'Date : '+date+'   Technicien : '+tech,'','Releves effectues sur site.','Voir detail dans le rapport complet.']);
+      const fid=uid();
+      try{ Store.set(fk(fid),{b64,name,type:'application/pdf'}); v.files.push({id:fid,name,size:Math.round(b64.length*0.75),type:'application/pdf'}); }catch(e){}
+    }
+    visites.push(v);
+  });
+}
+
 async function retirerDemo(){
   for(const v of visites.filter(x=>x.demo))for(const f of(v.files||[]))await Store.del(fk(f.id));
   visites=visites.filter(x=>!x.demo);await save();
 }
+
+/* ================= ASSISTANT ================= */
+const norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+const SEM_LUNDI=()=>{const d=new Date();d.setDate(d.getDate()-((d.getDay()+6)%7));return d.toISOString().slice(0,10);};
+const AUJ=()=>new Date().toISOString().slice(0,10);
+
+function techniciens(){return [...new Set(visites.map(v=>v.technicien).filter(Boolean))];}
+function trouveTech(q){const n=norm(q);return techniciens().find(t=>{const p=norm(t).split(/[\s.]+/).filter(x=>x.length>2);return p.some(x=>n.includes(x));});}
+function trouveClient(q){
+  const n=norm(q);const mots=n.split(/[^a-z0-9]+/).filter(w=>w.length>3&&!MOTSVIDES.includes(w));
+  if(!mots.length)return null;
+  let best=null,score=0;
+  visites.forEach(v=>{
+    const hay=norm([nomClient(v),v.raison_sociale,v.ville,v.siret,v.tel].join(' '));
+    const s=mots.filter(m=>hay.includes(m)).length;
+    if(s>score){score=s;best=v;}
+  });
+  return score?best:null;
+}
+const MOTSVIDES=['pour','avec','dans','cette','semaine','mois','client','fiche','visite','visites','technique','techniques','montre','donne','cherche','trouve','affiche','combien','quels','quelles','quel','quelle','rapport','rapports','planning','mission','missions','encore','doit','reste','restent','prochaine','prochaines','tous','toutes','liste'];
+
+function periodeDe(q){
+  const n=norm(q);
+  const t=AUJ(),l=SEM_LUNDI();
+  if(/aujourd|ce jour/.test(n))return{a:t,z:t,l:"aujourd'hui"};
+  if(/demain/.test(n)){const d=new Date();d.setDate(d.getDate()+1);const x=d.toISOString().slice(0,10);return{a:x,z:x,l:'demain'};}
+  if(/cette semaine|de la semaine|sur la semaine|semaine/.test(n)){const f=new Date(l);f.setDate(f.getDate()+6);return{a:l,z:f.toISOString().slice(0,10),l:'cette semaine'};}
+  if(/ce mois|du mois|mois/.test(n)){const a=t.slice(0,8)+'01';const d=new Date(t.slice(0,4),+t.slice(5,7),0);return{a,z:d.toISOString().slice(0,10),l:'ce mois'};}
+  return null;
+}
+const lig=v=>({id:v.id,label:nomClient(v),sub:[fmtD(v.date),v.ville,v.fiche,vtEtatN(v)].filter(Boolean).join(' · ')});
+
+
+/* ---------- actions : mise à jour depuis l'assistant ---------- */
+function clientsCites(q,exclu){
+  const n=norm(q), out=[];
+  const ex=new Set(norm(exclu||'').split(/[^a-z0-9]+/).filter(Boolean));
+  const stop=new Set(['monsieur','madame','mme','mr','mlle','dernier','derniers','derniere','dernieres','rapport','rapports','envoye','envoyes','transmis','recu','recus','rendu','rendus','pour','avec','les','des','mes','son','ses','deux','trois','quatre','cinq','vt','visite','visites','client','clients','mais','pas','encore','toujours','rien','relance','relancer','manque','manquant','manquants','plus','fait','sur','par']);
+  const mots=n.split(/[^a-z0-9]+/).filter(w=>w.length>3&&!stop.has(w)&&!ex.has(w));
+  mots.forEach(m=>{
+    visites.forEach(v=>{
+      if(out.find(x=>x.id===v.id))return;
+      const hay=norm([v.nom,v.raison_sociale].join(' '));
+      if(hay.split(/[^a-z0-9]+/).some(w=>w.length>3&&(w===m||w.startsWith(m)||m.startsWith(w))))out.push(v);
+    });
+  });
+  return out;
+}
+function nbCite(q){
+  const n=norm(q);
+  const m=n.match(/\b(\d+)\s*(dernier|derniere|rapport|vt|visite)/);
+  if(m)return +m[1];
+  const mots={un:1,une:1,deux:2,trois:3,quatre:4,cinq:5,six:6,sept:7,huit:8,neuf:9,dix:10};
+  for(const [k,v] of Object.entries(mots))if(new RegExp('\\b'+k+'\\s+(dernier|derniere|rapport|vt|visite)').test(n))return v;
+  if(/\ble dernier|\bla derniere/.test(n))return 1;
+  if(/\btous les|\btoutes les|\bl ensemble/.test(n))return 99;
+  return null;
+}
+function detecteAction(q){
+  const n=norm(q);
+  const neg=/\b(n a pas|na pas|pas encore|toujours pas|jamais|manque|manquant|oublie|rien recu|pas recu|pas envoye|relance|relancer|toujours rien)\b/.test(n);
+  const pos=/\b(a envoye|m a envoye|ma envoye|a transmis|a rendu|a depose|est arrive|sont arrives|j ai recu|jai recu|on a recu|recu|recus|transmis|rendu)\b/.test(n);
+  if(!neg&&!pos)return null;
+  const tech=trouveTech(q); if(!tech)return null;
+  const cites=clientsCites(q,tech);
+  const nb=nbCite(q);
+  let cibles;
+  if(cites.length)cibles=cites;
+  else{
+    const pool=visites.filter(v=>v.technicien===tech&&(neg?!rapportManquant(v)===false||rapportManquant(v):rapportManquant(v)));
+    const base=neg?visites.filter(v=>v.technicien===tech&&estFaite(v)):visites.filter(v=>v.technicien===tech&&rapportManquant(v));
+    cibles=base.sort((x,y)=>(y.date||'').localeCompare(x.date||''));
+    if(nb&&nb<99)cibles=cibles.slice(0,nb);
+    else if(!nb)cibles=cibles.slice(0,1);
+  }
+  if(!cibles.length)return{tech,neg,cibles:[],vide:true};
+  return{tech,neg,cibles,nb};
+}
+let enAttente=null;
+async function appliquer(){
+  if(!enAttente)return;
+  const {tech,neg,cibles}=enAttente;
+  const d=new Date().toISOString().slice(0,10);
+  cibles.forEach(v=>{
+    v.suivi=v.suivi||[];v.histoVT=v.histoVT||[];
+    const av=vtEtatN(v);
+    if(neg){
+      v.etat='Effectuée';v.rapportRelance=d;
+      v.suivi.push({d,par:user.nom,t:'Rapport non reçu — '+tech+' relancé.'});
+    }else{
+      v.etat='Rapport reçu';v.rapportAnnonce=d;
+      v.suivi.push({d,par:user.nom,t:'Rapport transmis par '+tech+(v.files&&v.files.length?'.':' — PDF à joindre dans la fiche.')});
+    }
+    if(av!==vtEtatN(v))v.histoVT.push(fmtD(d)+' · '+av+' → '+vtEtatN(v)+' · '+user.nom);
+    v.updatedAt=Date.now();
+  });
+  await save();
+  const t=neg?`${cibles.length} VT repassée${cibles.length>1?'s':''} en attente de rapport. ${tech} est noté comme relancé.`
+             :`${cibles.length} VT mise${cibles.length>1?'s':''} à jour pour ${tech}. Pensez à joindre le PDF dans chaque fiche.`;
+  chat.push({r:'a',t,items:cibles.map(lig)});
+  enAttente=null;drawChat();render();
+}
+
+function repondre(q){
+  const n=norm(q), t=AUJ();
+  const act=detecteAction(q);
+  if(act){
+    if(act.vide)return{t:`${act.tech} : aucune VT concernée trouvée.`,items:[]};
+    enAttente=act;
+    return{t:`${act.neg?'Repasser en attente de rapport':'Marquer le rapport comme reçu'} pour ${act.cibles.length} VT de ${act.tech} ?`,items:act.cibles.map(lig),confirm:true};
+  }
+  const tech=trouveTech(q), per=periodeDe(q);
+  const dans=(v,p)=>!p||(v.date>=p.a&&v.date<=p.z);
+
+  // rapports dus par technicien
+  if(tech&&/rapport|doit|retard|manqu|rendu/.test(n)){
+    const f=visites.filter(v=>v.technicien===tech&&estFaite(v));
+    const m=f.filter(rapportManquant);
+    return{t:`${tech} : ${m.length} rapport${m.length>1?'s':''} en attente sur ${f.length} VT effectuées.`,items:m.map(lig)};
+  }
+  // rapports manquants tous
+  if(/rapport/.test(n)&&/manqu|retard|doit|attente|qui doit/.test(n)){
+    const m=visites.filter(rapportManquant);
+    const par={};m.forEach(v=>{par[v.technicien||'—']=(par[v.technicien||'—']||0)+1;});
+    return{t:m.length?`${m.length} rapport${m.length>1?'s':''} en attente — `+Object.entries(par).map(([k,c])=>k+' : '+c).join(', ')+'.':'Aucun rapport en attente.',items:m.map(lig)};
+  }
+  // planning / missions d'un technicien
+  if(tech){
+    const p=per||{a:SEM_LUNDI(),z:new Date(Date.now()+13*864e5).toISOString().slice(0,10),l:'cette semaine et la suivante'};
+    const l=visites.filter(v=>v.technicien===tech&&dans(v,p)).sort((a,b)=>a.date.localeCompare(b.date));
+    const tot=visites.filter(v=>v.technicien===tech).length;
+    const man=visites.filter(v=>v.technicien===tech&&rapportManquant(v)).length;
+    if(!l.length){
+      const suite=visites.filter(v=>v.technicien===tech&&v.date>t).sort((a,b)=>a.date.localeCompare(b.date));
+      const der=visites.filter(v=>v.technicien===tech&&v.date<=t).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,4);
+      return{t:`${tech} — aucune VT ${p.l}${man?', '+man+' rapport'+(man>1?'s':'')+' en attente':''}. ${tot} VT au total.`,items:(suite.length?suite:der).map(lig)};
+    }
+    return{t:`${tech} — ${l.length} VT ${p.l}${man?', '+man+' rapport'+(man>1?'s':'')+' en attente':''}. ${tot} VT au total.`,items:l.map(lig)};
+  }
+  // rappels
+  if(/rappel|relance|a rappeler|echu/.test(n)){
+    const l=visites.filter(v=>v.rappel&&v.rappel<=t&&!v.optout).sort((a,b)=>a.rappel.localeCompare(b.rappel));
+    const ar=visites.filter(v=>v.statut==='À rappeler').length;
+    return{t:`${l.length} rappel${l.length>1?'s':''} échu${l.length>1?'s':''}, ${ar} client${ar>1?'s':''} à retravailler.`,items:l.map(lig)};
+  }
+  // fiche CEE
+  const mf=q.toUpperCase().match(/\b(AGRI|BAR|BAT|IND|RES|TRA)-[A-Z]{2}-\d{3}[A-Z]?\b/);
+  if(mf&&FMAP[mf[0]]){
+    const l=visites.filter(v=>v.fiche===mf[0]);
+    return{t:`${mf[0]} — ${ficheTitre(mf[0])}. ${l.length} VT dans la base.`,items:l.map(lig)};
+  }
+  // à venir
+  if(/a venir|prochaine|planifi|programme|agenda/.test(n)){
+    const p=per||{a:t,z:new Date(Date.now()+7*864e5).toISOString().slice(0,10),l:'les 7 prochains jours'};
+    const l=visites.filter(v=>estPrevue(v)&&dans(v,p)).sort((a,b)=>a.date.localeCompare(b.date));
+    return{t:`${l.length} VT prévue${l.length>1?'s':''} ${p.l}.`,items:l.map(lig)};
+  }
+  // comptage par période
+  if(per&&/combien|nombre|total|vt|visite/.test(n)){
+    const l=visites.filter(v=>dans(v,per));
+    const f=l.filter(estFaite).length;
+    return{t:`${l.length} VT ${per.l} — ${f} effectuée${f>1?'s':''}, ${l.length-f} à venir.`,items:l.map(lig)};
+  }
+  // signés / refus / rdv
+  if(/signe|dossier signe/.test(n)){const l=visites.filter(v=>v.statut==='Dossier signé');return{t:`${l.length} dossier${l.length>1?'s':''} signé${l.length>1?'s':''}.`,items:l.map(lig)};}
+  if(/rdv/.test(n)){const l=visites.filter(v=>v.statut==='RDV pris');return{t:`${l.length} RDV pris.`,items:l.map(lig)};}
+  if(/refus/.test(n)){const l=visites.filter(v=>v.statut==='Refus');return{t:`${l.length} refus.`,items:l.map(lig)};}
+  if(/annul|report/.test(n)){const l=visites.filter(v=>['Annulée','Reportée'].includes(vtEtatN(v)));return{t:`${l.length} VT reportée${l.length>1?'s':''} ou annulée${l.length>1?'s':''}.`,items:l.map(lig)};}
+  // département
+  const md=n.match(/\b(9[78]\d|\d{2})\b/);
+  if(md&&/dept|departement|dans le|secteur/.test(n)){
+    const l=visites.filter(v=>v.dept===md[1]);
+    return{t:`${l.length} VT dans le ${md[1]}.`,items:l.map(lig)};
+  }
+  // client
+  const c=trouveClient(q);
+  if(c){
+    const a=c.audit;
+    return{t:`${nomClient(c)} — ${[c.ville,c.fiche,vtEtatN(c),c.statut].filter(Boolean).join(' · ')}.${c.tel?' '+c.tel+'.':''}${a&&a.chauffage?' '+a.chauffage+'.':''}`,items:[lig(c)]};
+  }
+  // bilan
+  if(/bilan|resume|etat|point|ca va|situation/.test(n)){
+    const m=visites.filter(rapportManquant).length, r=visites.filter(v=>v.rappel&&v.rappel<=t&&!v.optout).length;
+    const sem=visites.filter(v=>v.date>=SEM_LUNDI()&&v.date<=t).length;
+    return{t:`${visites.length} VT au total, ${sem} cette semaine. ${m} rapport${m>1?'s':''} en attente, ${r} rappel${r>1?'s':''} échu${r>1?'s':''}.`,items:[]};
+  }
+  return{t:"Je n'ai pas trouvé. Essayez un nom de client, un technicien, un code de fiche ou « rapports en retard ».",items:[]};
+}
+
+const SUGG=["Rapports en retard","Planning de Fabien D.","VT cette semaine","Rappels échus","Yacine m'a envoyé le dernier rapport"];
+let chat=[];
+function openAssist(){
+  const d=document.getElementById('assist');
+  d.innerHTML=`<div class="aovl" id="aovl"><div class="apane" onclick="event.stopPropagation()">
+    <div class="ahead"><b>Recherche</b><span class="xs mut">réponses courtes, données de la base</span><button class="x" id="ax" style="margin-left:auto">×</button></div>
+    <div class="abody" id="abody"></div>
+    <div class="asugg">${SUGG.map(s=>`<span class="chip" data-sg="${esc(s)}">${esc(s)}</span>`).join('')}</div>
+    <div class="ain"><input type="text" id="aq" placeholder="Un client, un technicien, une fiche…" autocomplete="off"><button class="btn" id="ago">→</button></div>
+  </div></div>`;
+  document.getElementById('aovl').onclick=closeAssist;
+  document.getElementById('ax').onclick=closeAssist;
+  const go=()=>{const el=document.getElementById('aq');const v=el.value.trim();if(!v)return;el.value='';poser(v);};
+  document.getElementById('ago').onclick=go;
+  document.getElementById('aq').onkeydown=e=>{if(e.key==='Enter')go();};
+  d.querySelectorAll('[data-sg]').forEach(c=>c.onclick=()=>poser(c.dataset.sg));
+  drawChat();
+  setTimeout(()=>{const i=document.getElementById('aq');if(i&&window.innerWidth>700)i.focus();},60);
+}
+function poser(q){chat.push({r:'u',t:q});const r=repondre(q);if(!r.confirm)enAttente=null;chat.push({r:'a',...r});drawChat();}
+function drawChat(){
+  const b=document.getElementById('abody');if(!b)return;
+  b.innerHTML=chat.length?chat.map((m,idx)=>m.r==='u'?`<div class="amsg u">${esc(m.t)}</div>`:
+    `<div class="amsg a">${esc(m.t)}${m.items&&m.items.length?`<div class="ares">${m.items.slice(0,8).map(i=>`<div class="ait" data-open="${i.id}"><b>${esc(i.label)}</b><span>${esc(i.sub)}</span></div>`).join('')}${m.items.length>8?`<div class="xs mut" style="padding:4px 2px">+ ${m.items.length-8} autres</div>`:''}</div>`:''}${m.confirm&&idx===chat.length-1&&enAttente?`<div style="display:flex;gap:8px;margin-top:10px"><button class="btn sm" id="aok">Confirmer</button><button class="btn g sm" id="ano">Annuler</button></div>`:''}</div>`).join('')
+    :`<div class="avide">Posez une question sur la base.<br><span class="xs">« missions de Fabien cette semaine »<br>« Yacine m'a envoyé les 2 derniers rapports »<br>« Alexandre ne m'a pas envoyé le dernier rapport »<br>« scierie », « AGRI-EQ-110 »</span></div>`;
+  b.scrollTop=b.scrollHeight;
+  b.querySelectorAll('[data-open]').forEach(e=>e.onclick=()=>{closeAssist();setTimeout(()=>detail(e.dataset.open),200);});
+  const ok=document.getElementById('aok'),no=document.getElementById('ano');
+  if(ok)ok.onclick=appliquer;
+  if(no)no.onclick=()=>{enAttente=null;chat.push({r:'a',t:'Annulé, rien n\'a été modifié.',items:[]});drawChat();};
+}
+function closeAssist(){const d=document.getElementById('assist'),o=d.querySelector('.aovl');if(!o)return;o.classList.add('closing');setTimeout(()=>d.innerHTML='',200);}
+
+/* ================= VISITE GUIDÉE ================= */
+const TOUR=[
+  {sel:null,t:'Bienvenue sur VisitTrack',d:'Deux minutes pour savoir où cliquer. Vous pouvez arrêter à tout moment.'},
+  {sel:'#tabs',t:'Vos deux espaces',d:'Le tableau de bord donne l\'état général. Visites techniques contient toutes les fiches.'},
+  {sel:'#bMenu',t:'Le menu',d:'Le catalogue des 194 fiches CEE, le projet, le guide et les contacts sont rangés ici.'},
+  {sel:'#bNew,#bNewM',t:'Enregistrer une VT',d:'Saisissez le SIRET : raison sociale, adresse et dirigeant se remplissent seuls. Puis la fiche CEE, la date, le technicien, et le rapport en PDF.'},
+  {sel:'#bAssist',t:'La recherche',d:'Posez une question en français : « planning de Fabien », « rapports en retard », un nom de client. La réponse est immédiate.'},
+  {sel:null,t:'Un dernier point',d:'Une VT effectuée sans rapport joint déclenche une alerte rouge sur le tableau de bord. C\'est ce qu\'il faut traiter en premier chaque matin.'}
+];
+let tourI=0;
+function startTour(){tourI=0;view='tableau';render();setTimeout(drawTour,350);}
+function drawTour(){
+  const s=TOUR[tourI],d=document.getElementById('tour');
+  let box=null;
+  if(s.sel){const el=document.querySelector(s.sel.split(',').map(x=>x.trim()).find(x=>{const e=document.querySelector(x);return e&&e.offsetParent!==null;})||s.sel.split(',')[0]);
+    if(el){const r=el.getBoundingClientRect();box={x:r.left-6,y:r.top-6,w:r.width+12,h:r.height+12};}}
+  const pos=box?(box.y>window.innerHeight/2?'top':'bottom'):'center';
+  d.innerHTML=`<div class="tovl">
+    ${box?`<div class="thole" style="left:${box.x}px;top:${box.y}px;width:${box.w}px;height:${box.h}px"></div>`:''}
+    <div class="tcard" style="${pos==='center'?'top:50%;transform:translate(-50%,-50%);left:50%':pos==='bottom'?`top:${box.y+box.h+14}px;left:50%;transform:translateX(-50%)`:`top:${Math.max(14,box.y-190)}px;left:50%;transform:translateX(-50%)`}">
+      <div class="xs mut">Étape ${tourI+1} sur ${TOUR.length}</div>
+      <h3 style="margin:4px 0 6px">${esc(s.t)}</h3>
+      <p class="sm" style="margin:0 0 14px">${esc(s.d)}</p>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn g sm" id="tskip">Quitter</button>
+        ${tourI>0?'<button class="btn g sm" id="tprev">Retour</button>':''}
+        <button class="btn sm" id="tnext" style="margin-left:auto">${tourI===TOUR.length-1?'Terminer':'Suivant'}</button>
+      </div>
+    </div></div>`;
+  const on=(i,f)=>{const e=document.getElementById(i);if(e)e.onclick=f;};
+  on('tskip',endTour);on('tprev',()=>{tourI--;drawTour();});
+  on('tnext',()=>{if(tourI===TOUR.length-1){endTour();return;}tourI++;drawTour();});
+}
+function endTour(){document.getElementById('tour').innerHTML='';}
 
 /* ---------- stockage ---------- */
 const Store=(()=>{const ws=typeof window!=='undefined'&&window.storage&&typeof window.storage.get==='function';return{
@@ -682,7 +1038,7 @@ const STATUTS=['En attente','À rappeler','Rappelé','RDV pris','Dossier signé'
 
 let view='tableau';
 let q='', filtreFiche='', filtreType='', filtreStatut='', filtrePeriode='', filtreEtat='', filtreTech='';
-let repVue='fiche';
+let repVue='fiche', techQ='', techN=8;
 let catQ='', catSect='';
 let sortKey='date', sortDir=-1, pageSize=50, shown=50, sel=new Set();
 
@@ -734,12 +1090,13 @@ function enter(anim){
   document.getElementById('whoN').textContent=user.nom;
   document.getElementById('whoR').textContent='· '+ROLE_LABEL[user.role];
   view='tableau'; render();
+  Store.get('visittrack:tour').then(x=>{if(!x){Store.set('visittrack:tour','vu');setTimeout(startTour,900);}}).catch(()=>{});
   if(anim){ app.classList.add('in'); app.style.display=''; requestAnimationFrame(()=>requestAnimationFrame(()=>app.classList.remove('in'))); }
   else app.style.display='';
 }
 function gateOut(){ const app=document.getElementById('app'); app.classList.add('in'); setTimeout(()=>{app.style.display='none';app.classList.remove('in');gate();},450); }
 /* ---------- navigation ---------- */
-function tabsFor(){ return [['tableau','Tableau de bord'],['visites','Visites'],['catalogue','Fiches CEE']]; }
+function tabsFor(){ return [['tableau','Tableau de bord'],['visites','Visites techniques']]; }
 function render(){
   document.getElementById('tabs').innerHTML=tabsFor().map(([v,l])=>`<button class="tab ${view===v?'on':''}" data-v="${v}">${l}${v==='visites'?'<span class="n">'+(visites.length||'')+'</span>':v==='catalogue'?'<span class="n">194</span>':''}</button>`).join('');
   document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{view=t.dataset.v;render();});
@@ -769,7 +1126,7 @@ function vProjet(){
 
 
 /* ---------- menu latéral ---------- */
-const PAGES=[['tableau','Tableau de bord'],['visites','Visites techniques'],['catalogue','Fiches CEE'],null,['projet','Le projet'],['apropos','Qui sommes-nous'],['aide','Guide d\'utilisation'],['contact','Nous contacter']];
+const PAGES=[['tableau','Tableau de bord'],['visites','Visites techniques'],['catalogue','Catalogue des fiches CEE'],null,['projet','Le projet'],['apropos','Qui sommes-nous'],['aide','Guide d\'utilisation'],['contact','Nous contacter']];
 function openDrawer(){
   const d=document.getElementById('drawer');
   d.innerHTML=`<div class="dovl" id="dovl"><div class="dpane" onclick="event.stopPropagation()">
@@ -787,18 +1144,30 @@ function closeDrawer(){const d=document.getElementById('drawer'),o=d.querySelect
 function vApropos(){
   return `<div class="page">
   <h1>Qui sommes-nous</h1>
-  <p>VisitTrack est né d'un constat simple, fait par deux sociétés qui travaillent ensemble depuis des années sur les Certificats d'Économies d'Énergie.</p>
-  <h2>Un réseau de techniciens</h2>
-  <p>D'un côté, un opérateur de visites techniques présent dans toute la France métropolitaine et en Corse, mandaté par des installateurs pour se rendre chez leurs clients, relever, mesurer, photographier et produire le rapport qui déclenchera les travaux.</p>
-  <h2>Une expertise CEE</h2>
-  <p>De l'autre, une structure qui travaille le dispositif CEE depuis plusieurs années : montage de dossiers, relation avec les obligés, suivi réglementaire des 194 fiches d'opérations standardisées, en métropole comme en outre-mer.</p>
+  <p>VisitTrack réunit deux métiers qui se complètent, chacun restant indépendant de l'autre.</p>
+
+  <h2>Le réseau terrain</h2>
+  <p>Amir pilote un réseau de techniciens présent dans toute la France métropolitaine et en Corse. Mandaté par des installateurs, il envoie un VT-man sur place : relevés, métrages, photos, puis rédaction du rapport d'audit remis au donneur d'ordre. Des centaines de visites par an, tous secteurs confondus — agricole, tertiaire, industriel, résidentiel.</p>
+
+  <h2>L'expertise CEE</h2>
+  <p>Eythan travaille le dispositif des Certificats d'Économies d'Énergie depuis plusieurs années : montage et valorisation de dossiers, relation directe avec les obligés et délégataires, veille sur les 194 fiches d'opérations standardisées, métropole et DOM. Il est associé à des acteurs de premier plan qui disposent du matériel avant le marché et savent installer dans des délais courts — ce qui fait la différence quand une fiche vient de paraître.</p>
+
   <h2>Ce que nous faisons ensemble</h2>
-  <p>Chacun garde son activité. VisitTrack est l'outil commun : il enregistre les visites réalisées, conserve les rapports, et transforme cet historique en opportunités quand de nouvelles fiches paraissent.</p>
+  <p>Le réseau d'Amir alimente la plateforme : chaque visite réalisée y est archivée avec son rapport. Eythan travaille cette matière. Quand une nouvelle fiche sort ou qu'un barème évolue, il repère les clients déjà visités qui deviennent éligibles — parfois deux ans après la visite d'origine — et revient vers Amir avec le dossier et la rémunération associée.</p>
+  <p>Chacun garde son activité, sa relation client et sa marge. VisitTrack sert de terrain commun : tout ce qui est appelé, proposé, signé ou refusé y est tracé, avec la date et le nom de la personne. Le suivi est visible des deux côtés, en permanence. C'est la condition d'un travail durable.</p>
+
+  <h2>Le principe</h2>
+  <p>Une visite technique coûte cher à produire et ne sert qu'une fois. Ici elle sert plusieurs fois. Le client a déjà reçu un technicien, ses données sont relevées, son besoin est connu : au deuxième passage, il n'y a plus qu'à appeler.</p>
   </div>`;
 }
+
 function vAide(){
   return `<div class="page">
   <h1>Guide d'utilisation</h1>
+  <div class="card" style="max-width:62ch;margin-bottom:18px;display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+    <div style="flex:1;min-width:200px"><b class="sm">Première fois ici ?</b><div class="sm mut">Une visite guidée de deux minutes montre où cliquer.</div></div>
+    <button class="btn" id="bTour">Lancer la visite guidée</button>
+  </div>
   <h2>1. Enregistrer une VT</h2>
   <p>Bouton « Nouvelle visite ». Pour un professionnel, saisissez le SIRET : raison sociale, adresse, code NAF et dirigeant se remplissent seuls. Choisissez la fiche CEE pour laquelle la visite est demandée, la date et le technicien.</p>
   <h2>2. Suivre son état</h2>
@@ -824,14 +1193,18 @@ function vAide(){
 function vContact(){
   return `<div class="page">
   <h1>Nous contacter</h1>
-  <p>Une question sur une fiche, un dossier bloqué, une VT à programmer en urgence : écrivez, on répond dans la journée.</p>
+  <p>Une question sur une fiche, un dossier à faire avancer, une VT à programmer en urgence : on répond dans la journée.</p>
+
   <h2>Coordination des visites</h2>
-  <p>Amir — planification, réseau de techniciens, rapports.</p>
+  <p>Amir — planification, réseau de VT-men, rapports d'audit, délais d'intervention.</p>
+
   <h2>Dossiers CEE et réactivation</h2>
-  <p>Bratan — fiches, obligés, montage des dossiers, rappels clients.</p>
+  <p>Eythan — fiches et barèmes, obligés, montage et valorisation, rémunération des dossiers, rappels clients.</p>
+
   <h2>Un souci sur la plateforme</h2>
   <p>Signalez-le en précisant la VT concernée et ce que vous attendiez. Les remarques des utilisateurs orientent directement les évolutions.</p>
-  <div class="card" style="margin-top:20px;max-width:62ch"><b class="sm">Sauvegarde</b><p class="sm" style="margin:6px 0 0">La direction peut exporter l'intégralité de la base depuis l'onglet Visites, bouton « Sauvegarde ». À faire une fois par mois.</p></div>
+
+  <div class="card" style="margin-top:20px;max-width:62ch"><b class="sm">Sauvegarde</b><p class="sm" style="margin:6px 0 0">La direction exporte l'intégralité de la base depuis l'onglet Visites techniques, bouton « Sauvegarde ». À faire une fois par mois.</p></div>
   </div>`;
 }
 
@@ -850,11 +1223,12 @@ const periodeOk=v=>{switch(filtrePeriode){
   case 'annulees':return vtEtatN(v)==='Annulée';
   case 'avecrapport':return v.files&&v.files.length>0;
   case 'sansrapport':return rapportManquant(v);
+  case 'pdfajoindre':return pdfAJoindre(v);
   case 'synthese':return !!v.audit;
   case 'optout':return !!v.optout;
   case 'rappels':return v.rappel&&v.rappel<=today&&!v.optout;
   default:return true;}};
-const PERIODE_LABEL={semaine:'VT de cette semaine',mois:'VT de ce mois',avenir:'VT à venir',aujourdhui:'VT aujourd\'hui',realisees:'VT effectuées',enroute:'Technicien envoyé',reportees:'VT reportées',annulees:'VT annulées',avecrapport:'Avec rapport',sansrapport:'Rapport manquant',synthese:'Synthèse lue',optout:'Ne pas recontacter',rappels:'Rappels échus'};
+const PERIODE_LABEL={semaine:'VT de cette semaine',mois:'VT de ce mois',avenir:'VT à venir',aujourdhui:'VT aujourd\'hui',realisees:'VT effectuées',enroute:'Technicien envoyé',reportees:'VT reportées',annulees:'VT annulées',avecrapport:'Avec rapport',sansrapport:'Rapport manquant',pdfajoindre:'PDF à joindre',synthese:'Synthèse lue',optout:'Ne pas recontacter',rappels:'Rappels échus'};
 function vVisites(){
   const ql=q.trim().toLowerCase();
   const list=visites.filter(v=>{
@@ -879,7 +1253,7 @@ function vVisites(){
       <span class="ck" style="padding-top:2px"><input type="checkbox" data-ck="${v.id}" ${sel.has(v.id)?'checked':''} style="width:auto"></span>
       <div style="flex:1;min-width:0"><div class="who2">${esc(nomClient(v))}</div>
         <div class="sub">${esc([v.ville,v.dept?'dépt '+v.dept:'',v.type||'B2B'].filter(Boolean).join(' · '))} · ${fmtD(v.date)}</div>
-        <div class="fi">${v.fiche?`<span class="tag">${esc(v.fiche)}</span>`:''}<span class="tag ${vtEtat(v).c}">${esc(vtEtat(v).l)}</span><span class="tag ${v.statut==='Dossier signé'||v.statut==='RDV pris'?'v':''}">${esc(v.statut||'En attente')}</span>${rapportManquant(v)?'<span class="tag r">rapport manquant</span>':''}${v.audit?'<span class="tag a">synthèse</span>':''}${v.optout?'<span class="tag r">ne pas recontacter</span>':''}</div></div>
+        <div class="fi">${v.fiche?`<span class="tag">${esc(v.fiche)}</span>`:''}<span class="tag ${vtEtat(v).c}">${esc(vtEtat(v).l)}</span><span class="tag ${v.statut==='Dossier signé'||v.statut==='RDV pris'?'v':''}">${esc(v.statut||'En attente')}</span>${rapportManquant(v)?'<span class="tag r">rapport manquant</span>':(pdfAJoindre(v)?'<span class="tag a">PDF à joindre</span>':'')}${v.audit?'<span class="tag a">synthèse</span>':''}${v.optout?'<span class="tag r">ne pas recontacter</span>':''}</div></div>
     </div>`).join('')}${list.length>shown?`<div class="more"><button class="btn g sm" id="bMore">Afficher ${Math.min(pageSize,list.length-shown)} de plus</button></div>`:''}</div>`:'';
   return `
   <div class="card" style="margin-bottom:14px">
@@ -916,7 +1290,7 @@ function vVisites(){
       <td>${fmtD(v.date)}${v.donneur_ordre?'<div class="sub">'+esc(v.donneur_ordre)+'</div>':''}</td>
       <td><span class="tag ${vtEtat(v).c}">${esc(vtEtat(v).l)}</span></td>
       <td><span class="tag ${v.statut==='Dossier signé'||v.statut==='RDV pris'?'v':''}">${esc(v.statut||'En attente')}</span></td>
-      <td>${v.files&&v.files.length?'<span class="tag v">'+v.files.length+'</span>':(rapportManquant(v)?'<span class="tag r">manquant</span>':'<span class="mut">—</span>')}</td>
+      <td>${v.files&&v.files.length?'<span class="tag v">'+v.files.length+'</span>':(rapportManquant(v)?'<span class="tag r">manquant</span>':(pdfAJoindre(v)?'<span class="tag a">PDF à joindre</span>':'<span class="mut">—</span>'))}</td>
     </tr>`).join('')}</tbody></table>
     ${list.length>shown?`<div class="more"><button class="btn g sm" id="bMore">Afficher ${Math.min(pageSize,list.length-shown)} de plus (${list.length-shown} restantes)</button></div>`:''}</div>`)
   :`<div class="empty"><b>${visites.length?'Aucune visite ne correspond':'Aucune visite enregistrée'}</b>${visites.length?'Modifiez la recherche ou les filtres.':'Créez la première avec « Nouvelle visite » ou importez un fichier Excel.'}</div>`}`;
@@ -947,6 +1321,7 @@ function vTableau(){
   const sem=visites.filter(v=>v.date>=lundi&&v.date<=t).length, mois=visites.filter(v=>v.date>=mois1&&v.date<=t).length;
   const faites=visites.filter(estFaite).length, prevues=visites.filter(estPrevue).length;
   const manquants=visites.filter(rapportManquant).length;
+  const ajoindre=visites.filter(pdfAJoindre).length;
   const incidents=visites.filter(v=>['Reportée','Annulée','Non concluante'].includes(vtEtatN(v))).length;
   const st=s=>visites.filter(v=>(v.statut||'En attente')===s).length;
   const rappels=visites.filter(v=>v.rappel&&v.rappel<=t&&!v.optout).length;
@@ -956,8 +1331,8 @@ function vTableau(){
   const agenda=visites.filter(v=>v.date>=t&&v.date<=j7&&estPrevue(v)).sort((a,b)=>a.date.localeCompare(b.date));
   const tile=(v,k,s,per,stat,cls)=>`<div class="tile2 ${cls||''}" data-per="${per||''}" ${stat?'data-stat="'+stat+'"':''}><div class="v">${v}</div><div><div class="k">${k}</div>${s?`<div class="s">${s}</div>`:''}</div></div>`;
 
-  const sems=[];for(let i=11;i>=0;i--){const d=new Date(lundi);d.setDate(d.getDate()-i*7);const a=d.toISOString().slice(0,10);const e=new Date(d);e.setDate(e.getDate()+6);const z=e.toISOString().slice(0,10);sems.push({n:visites.filter(v=>v.date>=a&&v.date<=z).length});}
-  const maxS=Math.max(1,...sems.map(s=>s.n)), moy=Math.round(sems.reduce((s,x)=>s+x.n,0)/12*10)/10;
+  const NS=5;const sems=[];for(let i=NS-1;i>=0;i--){const d=new Date(lundi);d.setDate(d.getDate()-i*7);const a=d.toISOString().slice(0,10);const e=new Date(d);e.setDate(e.getDate()+6);const z=e.toISOString().slice(0,10);sems.push({a,z,n:visites.filter(v=>v.date>=a&&v.date<=z).length});}
+  const maxS=Math.max(1,...sems.map(s=>s.n)), moy=Math.round(sems.reduce((s,x)=>s+x.n,0)/NS*10)/10;
 
   const tech={};visites.filter(estFaite).forEach(v=>{if(!v.technicien)return;const o=tech[v.technicien]=tech[v.technicien]||{n:0,r:0};o.n++;if(v.files&&v.files.length)o.r++;});
   const techs=Object.entries(tech).sort((a,b)=>b[1].n-a[1].n);
@@ -974,17 +1349,18 @@ function vTableau(){
 
   <div class="secth"><h2>Activité VT</h2><span>${n} visites au total</span></div>
   <div class="tiles">
-    ${tile(sem,'VT cette semaine','moyenne '+moy+'/semaine','semaine',null,'dark')}
+    ${tile(sem,'VT cette semaine','','semaine',null,'dark')}
     ${tile(mois,'VT ce mois','','mois')}
     ${tile(faites,'VT effectuées','','realisees')}
     ${tile(prevues,'VT à venir','','avenir')}
     ${tile(manquants,'Rapport manquant','','sansrapport',null,manquants?'al':'')}
+    ${tile(ajoindre,'PDF à joindre','rapport annoncé reçu','pdfajoindre',null,ajoindre?'hi':'')}
     ${tile(incidents,'Reportées ou annulées','','reportees',null,incidents?'hi':'')}
   </div>
 
   <div class="card" style="margin-bottom:16px">
-    <div class="secth" style="margin:0 0 4px"><h2>Cadence</h2><span>12 dernières semaines</span></div>
-    <div class="spark">${sems.map((s,i)=>`<i class="${i===11?'last':''}" style="height:${Math.max(3,Math.round(s.n/maxS*100))}%" title="${s.n} VT"></i>`).join('')}</div>
+    <div class="secth" style="margin:0 0 4px"><h2>Cadence</h2><span>5 dernières semaines · ${moy} VT par semaine en moyenne</span></div>
+    <div class="spark">${sems.map((s,i)=>`<i class="${i===NS-1?'last':''}" style="height:${Math.max(3,Math.round(s.n/maxS*100))}%" title="${s.n} VT"><b>${s.n}</b></i>`).join('')}</div>
   </div>
 
   <div class="secth"><h2>Exploitation de la base</h2><span>ce que les VT rapportent ensuite</span></div>
@@ -999,8 +1375,12 @@ function vTableau(){
 
   ${agenda.length?`<div class="card" style="margin-bottom:14px"><h2 style="margin-bottom:8px">VT des 7 prochains jours</h2>${agenda.map(v=>`<div style="display:flex;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid #F1F4F3;cursor:pointer" data-open="${v.id}"><span class="tag ${v.date===t?'v':'a'}" style="min-width:86px;text-align:center">${v.date===t?'Aujourd\'hui':fmtD(v.date)}</span><b class="sm">${esc(nomClient(v))}</b><span class="sm mut">${esc([v.ville,v.fiche].filter(Boolean).join(' · '))}</span>${v.technicien?'<span class="xs mut" style="margin-left:auto">'+esc(v.technicien)+'</span>':''}</div>`).join('')}</div>`:''}
 
-  ${techs.length?`<div class="card" style="margin-bottom:14px"><div class="secth" style="margin:0 0 6px"><h2>Techniciens</h2><span>cliquez pour voir ses VT</span></div>
-    ${techs.map(([k,o],i)=>`<div class="rank" data-tech="${esc(k)}" style="cursor:pointer"><span class="p">${i+1}</span><b class="sm" style="flex:1">${esc(k)}</b><span class="sm mut">${o.n} VT</span><span class="tag ${o.r===o.n?'v':'r'}" style="min-width:92px;text-align:center">${o.r}/${o.n} rapports</span></div>`).join('')}</div>`:''}
+  ${techs.length?(()=>{const ql=norm(techQ);const f=ql?techs.filter(([k])=>norm(k).includes(ql)):techs;const vis=f.slice(0,techN);
+    return `<div class="card" style="margin-bottom:14px"><div class="secth" style="margin:0 0 8px"><h2>Techniciens</h2><span>${techs.length} au total · cliquez pour voir ses VT</span></div>
+    ${techs.length>8?`<input type="text" id="tq" value="${esc(techQ)}" placeholder="Chercher un technicien…" style="margin-bottom:8px">`:''}
+    ${vis.map(([k,o],i)=>`<div class="rank" data-tech="${esc(k)}" style="cursor:pointer"><span class="p">${i+1}</span><b class="sm" style="flex:1">${esc(k)}</b><span class="sm mut">${o.n} VT</span><span class="tag ${o.r===o.n?'v':'r'}" style="min-width:92px;text-align:center">${o.r}/${o.n} rapports</span></div>`).join('')||'<div class="sm mut">Aucun technicien ne correspond.</div>'}
+    ${f.length>techN?`<div style="text-align:center;padding-top:10px"><button class="btn g sm" id="tmore">Voir les ${f.length-techN} autres</button></div>`:(techN>8&&!ql?`<div style="text-align:center;padding-top:10px"><button class="btn g sm" id="tless">Réduire</button></div>`:'')}
+    </div>`;})():''}
 
   <div class="card">
     <div class="secth" style="margin:0 0 10px"><h2>Répartition</h2>
@@ -1180,6 +1560,7 @@ const vtEtat=v=>({l:vtEtatN(v),c:ETAT_CLS[vtEtatN(v)]||''});
 const estFaite=v=>['Effectuée','Rapport reçu','Non concluante'].includes(vtEtatN(v));
 const estPrevue=v=>['Demandée','Planifiée','Technicien envoyé','Reportée'].includes(vtEtatN(v));
 const rapportManquant=v=>vtEtatN(v)==='Effectuée'&&!(v.files&&v.files.length);
+const pdfAJoindre=v=>vtEtatN(v)==='Rapport reçu'&&!(v.files&&v.files.length);
 const joursDepuis=d=>d?Math.floor((Date.now()-new Date(d).getTime())/864e5):0;
 function pistes(v){
   const a=v.audit||{};const txt=[a.resume,a.chauffage,a.surface,a.batiment,a.equipements,(a.points||[]).join(' '),a.conclusion,v.notes,v.secteur].join(' ').toLowerCase();
@@ -1238,7 +1619,7 @@ function detail(id){
         <div><label class="f">État de la VT</label><select id="detat">${ETATS.map(s=>`<option ${vtEtatN(v)===s?'selected':''}>${s}</option>`).join('')}</select></div>
         <div><label class="f">Date de la VT</label><input type="date" id="ddate" value="${esc(v.date||'')}"></div>
       </div>
-      ${rapportManquant(v)?'<div class="alert" style="margin-bottom:10px"><b class="sm">Rapport non joint</b><span class="d">VT effectuée il y a '+joursDepuis(v.date)+' j</span></div>':''}
+      ${rapportManquant(v)?'<div class="alert" style="margin-bottom:10px"><b class="sm">Rapport non joint</b><span class="d">VT effectuée il y a '+joursDepuis(v.date)+' j</span></div>':(pdfAJoindre(v)?'<div class="alert" style="margin-bottom:10px;background:var(--ambre-pale);border-color:var(--ambre-trait)"><b class="sm">Rapport annoncé reçu — PDF à joindre</b><span class="d" style="color:var(--ambre)">'+(v.rapportAnnonce?fmtD(v.rapportAnnonce):'')+'</span></div>':'')}
       ${kv([['Technicien',esc(v.technicien)],['Donneur d\'ordre',esc(v.donneur_ordre)],['Saisie par',esc(v.saisi_par)],['Historique VT',(v.histoVT||[]).map(x=>esc(x)).join('<br>')]])}
       ${v.notes?`<div class="note"><div class="xs mut">Notes</div>${esc(v.notes)}</div>`:''}`)}
 
@@ -1343,9 +1724,13 @@ function bind(){
   document.querySelectorAll('[data-ck]').forEach(c=>c.onclick=e=>{e.stopPropagation();if(c.checked)sel.add(c.dataset.ck);else sel.delete(c.dataset.ck);render();});
   on('ckAll','click',e=>{e.stopPropagation();const l=window._listeCourante().slice(0,shown);if(e.target.checked)l.forEach(v=>sel.add(v.id));else l.forEach(v=>sel.delete(v.id));render();});
   on('bulkClr','click',()=>{sel.clear();render();});
+  on('bTour','click',startTour);
   on('fclear','click',()=>{q='';filtreFiche='';filtreType='';filtreStatut='';filtrePeriode='';filtreEtat='';filtreTech='';shown=pageSize;render();});
   document.querySelectorAll('[data-tech]').forEach(e=>e.onclick=ev=>{ev.stopPropagation();filtreTech=e.dataset.tech;filtrePeriode='';shown=pageSize;view='visites';render();});
   document.querySelectorAll('[data-rep]').forEach(e=>e.onclick=()=>{repVue=e.dataset.rep;render();});
+  on('tmore','click',()=>{techN+=20;render();});
+  on('tless','click',()=>{techN=8;render();});
+  on('tq','input',e=>{techQ=e.target.value;const p=e.target.selectionStart;render();const n=document.getElementById('tq');if(n){n.focus();n.setSelectionRange(p,p);}});
   document.querySelectorAll('[data-per]').forEach(e=>e.onclick=ev=>{ev.stopPropagation();filtrePeriode=e.dataset.per;filtreStatut=e.dataset.stat||'';shown=pageSize;view='visites';render();});
   on('bDemoOff','click',async()=>{if(!confirm('Retirer les visites de démonstration ?'))return;await retirerDemo();try{await Store.set(KD,'off');}catch(e){}render();toast('Démonstration retirée');});
   on('bDemoOn','click',async()=>{await chargerDemo();try{await Store.set(KD,'on');}catch(e){}render();toast('Démonstration chargée');});
@@ -1356,11 +1741,12 @@ function bind(){
   document.querySelectorAll('[data-cf]').forEach(c=>c.onclick=()=>{filtreFiche=c.dataset.cf;view='visites';render();});
 }
 document.getElementById('bMenu').onclick=openDrawer;
+document.getElementById('bAssist').onclick=openAssist;
 document.getElementById('bNew').onclick=()=>formVisite(null);
 document.getElementById('bNewM').onclick=()=>formVisite(null);
 let rsz;window.addEventListener('resize',()=>{clearTimeout(rsz);rsz=setTimeout(()=>{if(user&&view==='visites')render();},200);});
 document.getElementById('bOut').onclick=async()=>{user=null;try{await Store.del(KS);}catch(e){}gateOut();};
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeDrawer();}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeDrawer();closeAssist();}});
 (async()=>{try{await load();}catch(e){}let s=null;try{s=await Store.get(KS);}catch(e){}if(s&&ACCES.find(a=>a.login===s.login)){user=s;enter();}else gate();})();
 </script>
 </body>
