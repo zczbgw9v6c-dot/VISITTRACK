@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1A2727">
+<link rel="apple-touch-icon" href="apple-touch-icon.PNG">
+<link rel="icon" type="image/png" href="apple-touch-icon.PNG">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="VisitTrack">
+
+<title>VisitTrack — le suivi des visites techniques</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --fond:#F9F9F9; --carte:#FFFFFF; --trait:#E2E7E5;
+  --encre:#1A2727; --encre-2:#3D4F4C; --encre-3:#778785;
+  --vert:#4A9C85; --vert-clair:#8DC272; --vert-pale:#EAF3EC; --vert-fonce:#2F6E5D;
+  --ambre:#8A6014; --ambre-pale:#FAF3E4; --ambre-trait:#EFE2C6;
+  --rouge:#A23B2E; --rouge-pale:#FBEAE7;
+  --r:10px;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:"Inter","Avenir Next",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:var(--fond);color:var(--encre);font-size:15px;line-height:1.5;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+h1,h2,h3{margin:0;font-weight:600;letter-spacing:-.02em}
+h1{font-size:22px} h2{font-size:17px} h3{font-size:14.5px}
+p{margin:0 0 10px}
+
+/* transitions */
+#view.sw{animation:swap .34s cubic-bezier(.2,.7,.2,1)}
+@keyframes swap{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+#view.sw>*{animation:stag .4s cubic-bezier(.2,.7,.2,1) backwards}
+#view.sw>*:nth-child(1){animation-delay:.02s}#view.sw>*:nth-child(2){animation-delay:.06s}#view.sw>*:nth-child(3){animation-delay:.1s}#view.sw>*:nth-child(4){animation-delay:.14s}#view.sw>*:nth-child(5){animation-delay:.18s}#view.sw>*:nth-child(n+6){animation-delay:.22s}
+@keyframes stag{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.sec{animation:none}
+.ovl{animation:ovin .25s ease}
+.ovl.closing{animation:ovout .22s ease forwards}
+@keyframes ovin{from{background:rgba(26,39,39,0)}to{background:rgba(26,39,39,.42)}}
+@keyframes ovout{to{background:rgba(26,39,39,0)}}
+.pane{animation:slide .3s cubic-bezier(.2,.8,.2,1)}
+.ovl.closing .pane{animation:slideout .22s ease forwards}
+@keyframes slide{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}
+@keyframes slideout{to{transform:translateX(30px);opacity:0}}
+.tab{transition:background .2s ease,color .2s ease,transform .15s ease}
+.tab:active{transform:scale(.96)}
+.it,.mc,.crow{transition:border-color .15s ease,background .15s ease,transform .12s ease}
+.mc:active,.crow:active{transform:scale(.995)}
+tbody tr{transition:background .12s ease}
+.btn{transition:filter .15s ease,background .15s ease}
+.toast{animation:tin .25s ease}
+@keyframes tin{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
+/* cartes mobile */
+.mc{background:var(--carte);border:1px solid var(--trait);border-radius:var(--r);padding:12px 14px;display:flex;gap:12px;align-items:flex-start}
+.mc.sel{background:var(--vert-pale);border-color:#CDE4DC}
+.mc .who2{font-weight:600}
+.mc .sub{font-size:12.5px;color:var(--encre-3)}
+.mc .fi{margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.fab{display:none}
+
+#gate,#app{transition:opacity .45s ease}
+#gate.out{opacity:0;pointer-events:none}
+#app.in{opacity:0}
+.gbox{transform:translateY(6px);opacity:0;animation:rise .5s .05s ease forwards}
+@keyframes rise{to{transform:none;opacity:1}}
+.gbox.leaving{transition:transform .3s ease,opacity .3s ease;transform:translateY(-6px);opacity:0}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:rot .7s linear infinite;vertical-align:-2px;margin-right:8px}
+@keyframes rot{to{transform:rotate(360deg)}}
+.audit{background:var(--ambre-pale);border:1px solid var(--ambre-trait);border-radius:var(--r);padding:14px 16px;margin-top:14px}
+.audit h3{color:var(--ambre);margin-bottom:6px}
+.audit .kv{grid-template-columns:150px 1fr;margin-top:10px}
+/* connexion */
+.gate{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--encre)}
+.gbox{background:var(--carte);border-radius:14px;padding:30px 28px;width:min(400px,100%)}
+.gbox .logo{font-size:26px;margin-bottom:2px}
+.gbox .tl{color:var(--encre-3);font-size:13.5px;margin-bottom:22px}
+.gerr{color:var(--rouge);font-size:13px;margin-top:8px;min-height:18px}
+
+/* menu latéral */
+.burger{background:none;border:0;padding:6px;cursor:pointer;display:flex;flex-direction:column;gap:4px;border-radius:8px}
+.burger:hover{background:var(--vert-pale)}
+.burger span{display:block;width:18px;height:2px;background:var(--encre);border-radius:2px}
+.dovl{position:fixed;inset:0;background:rgba(26,39,39,.42);z-index:90;animation:ovin .25s ease}
+.dovl.closing{animation:ovout .2s ease forwards}
+.dpane{width:min(320px,86%);height:100%;background:var(--carte);box-shadow:8px 0 30px rgba(26,39,39,.18);padding:20px 16px;display:flex;flex-direction:column;animation:dslide .3s cubic-bezier(.2,.8,.2,1);overflow:auto}
+.dovl.closing .dpane{animation:dslideout .2s ease forwards}
+@keyframes dslide{from{transform:translateX(-30px);opacity:.4}to{transform:none;opacity:1}}
+@keyframes dslideout{to{transform:translateX(-24px);opacity:0}}
+.dpane .dlogo{font-weight:700;font-size:19px;letter-spacing:-.02em;margin-bottom:2px}
+.dpane .dlogo span{color:var(--vert)}
+.dpane .dtl{font-size:12.5px;color:var(--encre-3);margin-bottom:20px}
+.dlink{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:0;padding:11px 12px;border-radius:9px;cursor:pointer;font-size:14.5px;color:var(--encre);transition:background .15s}
+.dlink:hover{background:var(--vert-pale)}
+.dlink.on{background:var(--encre);color:#fff;font-weight:600}
+.dsep{height:1px;background:var(--trait);margin:12px 0}
+.dfoot{margin-top:auto;font-size:12px;color:var(--encre-3);line-height:1.5;padding:12px 12px 0}
+.page h2{margin:22px 0 8px}
+.page p{font-size:14.5px;color:var(--encre-2);max-width:62ch}
+.page ul{font-size:14.5px;color:var(--encre-2);max-width:62ch;padding-left:20px}
+.page li{margin-bottom:5px}
+/* shell */
+.top{background:var(--carte);border-bottom:1px solid var(--trait);position:sticky;top:0;z-index:20;padding-top:env(safe-area-inset-top)}
+.topin{max-width:1040px;margin:0 auto;padding:12px 18px;display:flex;align-items:center;gap:14px}
+.logo{font-weight:700;letter-spacing:-.02em;font-size:17px}
+.logo span{color:var(--vert)}
+.tabs{display:flex;gap:2px;margin-left:8px}
+.tab{background:none;border:0;padding:8px 12px;border-radius:8px;color:var(--encre-2);cursor:pointer;font-weight:500;white-space:nowrap}
+.tab:hover{background:var(--vert-pale)}
+.tab.on{background:var(--encre);color:#fff}
+.tab .n{color:var(--encre-3);font-size:12px;margin-left:5px}
+.tab.on .n{color:#B9CFC9}
+.who{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--encre-3)}
+.who b{color:var(--encre)}
+.wrap{max-width:1040px;margin:0 auto;padding:20px 18px}
+
+/* atoms */
+.btn{background:var(--vert);color:#fff;border:0;border-radius:8px;padding:9px 15px;font-weight:600;cursor:pointer;white-space:nowrap}
+.btn:hover{filter:brightness(1.06)}
+.btn.g{background:none;color:var(--encre);border:1px solid var(--trait)}
+.btn.g:hover{background:var(--vert-pale);filter:none}
+.btn.sm{padding:6px 11px;font-size:13.5px;font-weight:500}
+.btn.d{background:none;color:var(--rouge);border:1px solid #E8C9C4}
+.btn.w{width:100%}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.card{background:var(--carte);border:1px solid var(--trait);border-radius:var(--r);padding:18px}
+input[type=text],input[type=date],input[type=email],input[type=tel],input[type=number],input[type=password],select,textarea{
+  width:100%;padding:9px 11px;border:1px solid var(--trait);border-radius:8px;background:#fff}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--vert);outline-offset:-1px;border-color:transparent}
+label.f{display:block;font-size:12.5px;color:var(--encre-3);margin-bottom:4px}
+.field{margin-bottom:12px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cols3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.seg{display:inline-flex;border:1px solid var(--trait);border-radius:8px;overflow:hidden}
+.seg button{background:#fff;border:0;padding:8px 14px;cursor:pointer;color:var(--encre-2)}
+.seg button.on{background:var(--encre);color:#fff;font-weight:600}
+.tag{display:inline-block;font-size:12px;padding:2px 8px;border-radius:5px;background:var(--fond);color:var(--encre-2);white-space:nowrap;border:1px solid var(--trait)}
+.tag.a{background:var(--ambre-pale);color:var(--ambre);border-color:var(--ambre-trait)}
+.tag.v{background:var(--vert-pale);color:var(--vert-fonce);border-color:#CDE4DC}
+.tag.r{background:var(--rouge-pale);color:var(--rouge);border-color:#E8C9C4}
+.mut{color:var(--encre-3)} .sm{font-size:13.5px} .xs{font-size:12px}
+.empty{padding:40px 20px;text-align:center;color:var(--encre-3);border:1px dashed var(--trait);border-radius:var(--r);background:var(--carte)}
+.empty b{display:block;color:var(--encre);margin-bottom:6px}
+.hr{height:1px;background:var(--trait);border:0;margin:16px 0}
+.stepn{display:flex;align-items:center;gap:10px;margin:22px 0 12px}
+.stepn i{font-style:normal;width:24px;height:24px;border-radius:50%;background:var(--encre);color:#fff;font-size:12.5px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;flex:0 0 24px}
+.siretrow{display:flex;gap:8px;align-items:flex-end}
+.siretmsg{font-size:12.5px;margin-top:5px;min-height:18px}
+.siretmsg.ok{color:var(--vert-fonce)} .siretmsg.ko{color:var(--rouge)}
+
+/* projet */
+.hero{background:var(--encre);color:#fff;border-radius:14px;padding:30px 28px;margin-bottom:16px}
+.hero h1{font-size:26px;color:#fff;margin-bottom:8px;max-width:640px}
+.hero p{color:#B9CFC9;max-width:600px;font-size:15.5px}
+.hero .big{font-size:44px;font-weight:700;letter-spacing:-.03em;line-height:1;color:var(--vert-clair)}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.step{background:var(--carte);border:1px solid var(--trait);border-radius:var(--r);padding:16px}
+.step .k{font-size:12.5px;color:var(--vert);font-weight:600;margin-bottom:6px}
+.step h3{margin-bottom:6px}
+.step p{font-size:13.5px;color:var(--encre-2);margin:0}
+.facts{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.fact{background:var(--carte);border:1px solid var(--trait);border-radius:var(--r);padding:14px 16px;font-size:13.5px}
+.fact b{display:block;margin-bottom:3px}
+.roles{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.role{background:var(--carte);border:1px solid var(--trait);border-radius:var(--r);padding:14px 16px;font-size:13.5px}
+.role b{display:block;margin-bottom:4px}
+.role ul{margin:0;padding-left:16px;color:var(--encre-2)}
+
+/* tableau des visites */
+.tw{background:var(--carte);border:1px solid var(--trait);border-radius:var(--r);overflow:auto}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th{text-align:left;padding:9px 12px;color:var(--encre-3);font-weight:500;font-size:12.5px;border-bottom:1px solid var(--trait);white-space:nowrap;background:var(--carte);position:sticky;top:0;cursor:pointer;user-select:none}
+th.s{color:var(--encre)}
+td{padding:9px 12px;border-bottom:1px solid #F1F4F3;vertical-align:middle}
+tr:last-child td{border-bottom:0}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:#F6F9F8}
+tbody tr.sel{background:var(--vert-pale)}
+td.ck,th.ck{width:34px;padding-right:0}
+td .who2{font-weight:600}
+td .sub{font-size:12px;color:var(--encre-3)}
+.bulk{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--encre);color:#fff;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:13.5px}
+.bulk .btn.g{color:#fff;border-color:#4A5F5C}
+.bulk .btn.g:hover{background:#2C3E3B}
+.more{text-align:center;padding:12px}
+/* liste */
+.lst{display:flex;flex-direction:column;gap:8px}
+.it-old{background:var(--carte);border:1px solid var(--trait);border-radius:var(--r);padding:13px 16px;display:flex;gap:14px;align-items:center;cursor:pointer}
+.it:hover{border-color:#C9D6D2}
+.it .who2{font-weight:600}
+.it .meta{font-size:13px;color:var(--encre-3);margin-top:1px}
+.it .fi{margin-left:auto;text-align:right;min-width:150px}
+.it .fi .c{font-weight:600;font-size:13.5px}
+.it .fi .t{font-size:12px;color:var(--encre-3);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--vert-clair);flex:0 0 8px}
+.dot.n{background:var(--trait)}
+
+/* sélecteur de fiche */
+.fpick{position:relative}
+.fdrop{position:absolute;left:0;right:0;top:100%;z-index:30;background:#fff;border:1px solid var(--trait);border-radius:8px;max-height:280px;overflow:auto;box-shadow:0 10px 30px rgba(26,39,39,.12);margin-top:4px}
+.fopt{padding:8px 11px;cursor:pointer;display:flex;gap:10px;align-items:baseline;border-bottom:1px solid #F1F4F3}
+.fopt:hover,.fopt.hl{background:var(--vert-pale)}
+.fopt b{font-size:13px;min-width:108px}
+.fopt span{font-size:13px;color:var(--encre-2)}
+.fsel{display:flex;align-items:center;gap:10px;background:var(--vert-pale);border:1px solid #CDE4DC;border-radius:8px;padding:9px 12px}
+.fsel b{font-size:13.5px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.chip{border:1px solid var(--trait);background:#fff;border-radius:999px;padding:3px 11px;font-size:12.5px;cursor:pointer;color:var(--encre-2)}
+.chip.on{background:var(--encre);color:#fff;border-color:var(--encre)}
+
+/* fichiers */
+.drop{border:1.5px dashed #C9D6D2;border-radius:8px;padding:18px;text-align:center;color:var(--encre-3);cursor:pointer;background:#fff}
+.drop:hover{border-color:var(--vert);background:var(--vert-pale)}
+.files{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.file{display:flex;align-items:center;gap:10px;border:1px solid var(--trait);border-radius:8px;padding:7px 10px;font-size:13.5px;background:#fff}
+.file .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.x{background:none;border:0;cursor:pointer;color:var(--encre-3);font-size:18px;line-height:1;padding:0 4px}
+
+/* fiche client */
+.sec{padding:14px 0;border-top:1px solid var(--trait)}
+.sech{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.sech h3{font-size:12.5px;color:var(--encre-3);font-weight:600;letter-spacing:.01em}
+.sech .btn{margin-left:auto}
+.note{background:var(--fond);border-radius:8px;padding:10px 12px;margin-top:10px;font-size:13.5px;white-space:pre-wrap}
+.concl{background:#fff;border:1px solid var(--ambre-trait);border-radius:8px;padding:9px 12px;margin-top:10px;font-size:13.5px}
+.pistes{display:flex;flex-direction:column;gap:6px}
+.piste{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--trait);border-left:3px solid var(--vert);border-radius:8px;padding:9px 12px;background:#fff}
+.piste b{font-size:13px;min-width:100px;padding-top:1px}
+.hist{padding:6px 0;border-bottom:1px solid #F1F4F3}
+.actions{display:flex;gap:10px;flex-wrap:wrap;padding-top:14px;border-top:1px solid var(--trait);position:sticky;bottom:0;background:var(--carte);margin-top:6px;padding-bottom:4px}
+.pane a{color:var(--vert);text-decoration:none}
+.pane{overflow-wrap:anywhere}
+/* panneau */
+.ovl{position:fixed;inset:0;background:rgba(26,39,39,.42);z-index:80;display:flex;justify-content:flex-end}
+.pane{background:var(--carte);width:min(620px,100%);height:100%;overflow:auto;padding:22px;box-shadow:-8px 0 30px rgba(26,39,39,.15)}
+.pane header{display:flex;gap:12px;align-items:flex-start;margin-bottom:16px}
+.kv{display:grid;grid-template-columns:minmax(110px,140px) 1fr;gap:7px 12px;font-size:14px}
+.kv dd{min-width:0}
+.kv dt{color:var(--encre-3)} .kv dd{margin:0}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:22px;background:var(--encre);color:#fff;padding:10px 16px;border-radius:8px;z-index:200;font-size:13.5px}
+
+/* tuiles tableau de bord */
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.tile2{background:var(--carte);border:1px solid var(--trait);border-radius:16px;padding:16px;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;min-height:118px;transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease}
+.tile2:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(26,39,39,.09);border-color:#C9D6D2}
+.tile2:active{transform:scale(.98)}
+.tile2 .v{font-size:32px;font-weight:700;letter-spacing:-.04em;line-height:1}
+.tile2 .k{font-size:13px;color:var(--encre-2);font-weight:500;margin-top:8px;line-height:1.3}
+.tile2 .s{font-size:11.5px;color:var(--encre-3);margin-top:2px}
+.tile2.hi{background:var(--ambre-pale);border-color:var(--ambre-trait)} .tile2.hi .v{color:var(--ambre)}
+.tile2.ok{background:var(--vert-pale);border-color:#CDE4DC} .tile2.ok .v{color:var(--vert-fonce)}
+.tile2.al{background:var(--rouge-pale);border-color:#E8C9C4} .tile2.al .v{color:var(--rouge)}
+.tile2.dark{background:var(--encre);border-color:var(--encre)} .tile2.dark .v{color:#fff} .tile2.dark .k{color:#C9DCD7} .tile2.dark .s{color:#8FA9A4}
+.secth{display:flex;align-items:baseline;gap:10px;margin:4px 0 10px}
+.secth h2{font-size:15px}
+.secth span{font-size:12.5px;color:var(--encre-3)}
+.spark{display:flex;align-items:flex-end;gap:3px;height:46px;margin-top:6px}
+.spark i{flex:1;background:var(--vert);border-radius:2px 2px 0 0;min-height:2px;opacity:.85}
+.spark i.last{background:var(--ambre);opacity:1}
+.alert{display:flex;gap:12px;align-items:center;padding:10px 12px;border-radius:8px;background:var(--rouge-pale);border:1px solid #E8C9C4;margin-bottom:8px;cursor:pointer}
+.alert .d{margin-left:auto;font-size:12px;color:var(--rouge);font-weight:600;white-space:nowrap}
+.rank{display:flex;align-items:center;gap:12px;padding:7px 0;border-bottom:1px solid #F1F4F3}
+.rank .p{width:22px;height:22px;border-radius:50%;background:var(--fond);font-size:11.5px;display:flex;align-items:center;justify-content:center;color:var(--encre-3);flex:0 0 22px}
+/* catalogue & stats */
+.cat{display:grid;grid-template-columns:1fr;gap:4px}
+.crow{display:flex;gap:12px;align-items:center;padding:8px 12px;border-radius:8px;background:var(--carte);border:1px solid var(--trait);cursor:pointer}
+.crow:hover{border-color:#C9D6D2}
+.crow b{min-width:112px;font-size:13.5px}
+.crow span{flex:1;font-size:13.5px;color:var(--encre-2)}
+.crow .n{font-size:12.5px;color:var(--encre-3);min-width:70px;text-align:right}
+.crow .n.has{color:var(--vert);font-weight:600}
+.maprow{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid #F1F4F3}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:14px}
+.stat{background:var(--carte);border:1px solid var(--trait);border-radius:var(--r);padding:14px 16px}
+.stat .v{font-size:26px;font-weight:600;letter-spacing:-.03em;line-height:1.15}
+.stat .k{font-size:12.5px;color:var(--encre-3)}
+.stat.tile{cursor:pointer;border-left:3px solid var(--trait);transition:border-color .15s,transform .15s}
+.stat.tile:hover{border-color:var(--vert);transform:translateY(-1px)}
+.stat.tile.hi{border-left-color:var(--ambre)} .stat.tile.hi .v{color:var(--ambre)}
+.stat.tile.ok{border-left-color:var(--vert)} .stat.tile.ok .v{color:var(--vert-fonce)}
+.stat.tile.warn{border-left-color:var(--rouge)} .stat.tile.warn .v{color:var(--rouge)}
+.bar{height:6px;background:var(--fond);border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--vert)}
+
+@media(max-width:700px){
+  #bNew{display:none}
+  .fab{display:flex;position:fixed;right:16px;bottom:calc(18px + env(safe-area-inset-bottom));z-index:40;box-shadow:0 8px 24px rgba(26,39,39,.28);padding:13px 18px;border-radius:999px;font-size:15px}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .tiles{grid-template-columns:repeat(2,1fr);gap:10px}
+  .tile2{min-height:104px;padding:14px;border-radius:14px}
+  .tile2 .v{font-size:27px}
+  .stat .v{font-size:22px}
+  .bulk{position:sticky;top:104px;z-index:15}
+  body{padding-bottom:calc(80px + env(safe-area-inset-bottom))}
+  .topin{padding:10px 12px;flex-wrap:wrap}
+  .tabs{order:3;width:100%;margin:6px 0 0;overflow-x:auto}
+  .who{margin-left:auto}
+  .wrap{padding:14px 12px}
+  .cols,.cols3,.steps,.facts,.roles{grid-template-columns:1fr}
+  .hero{padding:22px 18px} .hero h1{font-size:22px} .hero .big{font-size:36px}
+  .it{flex-wrap:wrap} .it .fi{margin-left:16px;text-align:left;width:100%}
+  .kv{grid-template-columns:minmax(90px,110px) 1fr} .pane{padding:16px;width:100%}
+  input,select,textarea{font-size:16px!important}
+  .maprow{grid-template-columns:1fr}
+}
+@media print{
+  .top,.fab,.actions,.tabs,.who,#gate{display:none!important}
+  body{background:#fff}.ovl{position:static;background:none;display:block}
+  .pane{width:100%;height:auto;box-shadow:none;padding:0;overflow:visible;animation:none}
+  .sec{break-inside:avoid}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}.gbox{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<div id="gate"></div>
+<div id="app" style="display:none">
+<div class="top"><div class="topin">
+  <button class="burger" id="bMenu" aria-label="Menu"><span></span><span></span><span></span></button>
+  <div class="logo">Visit<span>Track</span></div>
+  <div class="tabs" id="tabs"></div>
+  <div class="who"><span>Connecté : <b id="whoN"></b> <span id="whoR"></span></span><button class="btn g sm" id="bOut">Quitter</button></div>
+  <button class="btn" id="bNew">Nouvelle visite</button>
+</div></div>
+<div class="wrap" id="view"></div>
+<button class="btn fab" id="bNewM">+ Nouvelle visite</button>
+<div id="drawer"></div>
+<div id="modal"></div>
+</div>
+
+<script>
+/* =====================================================================
+   ACCÈS — maquette. Les comptes ci-dessous servent à démontrer les rôles.
+   En production, l'authentification et les données passent par un serveur
+   (voir le brief transmis au développeur). Ne pas déployer tel quel.
+   ===================================================================== */
+const ACCES = [
+  { login:'VT-100', mdp:'2026', nom:'Bratan',       role:'direction' },
+  { login:'VT-200', mdp:'2026', nom:'Amir',         role:'direction' },
+  { login:'VT-300', mdp:'2026', nom:'Saisie',       role:'confirmateur' }
+];
+const ROLE_LABEL = { confirmateur:'Saisie', direction:'Direction' };
+const FICHES=[
+["AGRI-EQ-101","Module d'intégration de température sur ordinateur climatique","tous"],
+["AGRI-EQ-102","Double écran thermique de serre","tous"],
+["AGRI-EQ-104","Écrans thermiques latéraux de serre","tous"],
+["AGRI-EQ-105","Stop & Start pour véhicules agricoles à moteur","tous"],
+["AGRI-EQ-108","Stockage d'eau pour serre bioclimatique — ABROGÉE","tous"],
+["AGRI-EQ-109","Couverture performante de serre","tous"],
+["AGRI-EQ-111","Simple écran thermique de serre","tous"],
+["AGRI-EQ-112","Double paroi gonflable sur serre — ABROGÉE","tous"],
+["AGRI-TH-117","Déshumidification thermodynamique de serre maraîchère","tous"],
+["AGRI-TH-118","Double tube de chauffage pour serre","tous"],
+["AGRI-EQ-110","Séchage solaire par insufflation, panneaux hybrides","tous"],
+["AGRI-TH-103","Pré-refroidisseur de lait","tous"],
+["AGRI-TH-104","Récupération de chaleur sur groupe froid agricole","tous"],
+["AGRI-TH-105","Récupérateur de chaleur sur tank à lait","tous"],
+["BAR-TH-112","Appareil indépendant de chauffage au bois (Coup de pouce)","metropole"],
+["BAR-TH-113","Chaudière biomasse individuelle (Coup de pouce)","metropole"],
+["BAR-TH-129","Pompe à chaleur air/air (résidentiel)","metropole"],
+["BAR-TH-171","Pompe à chaleur air/eau (résidentiel)","metropole"],
+["BAT-EN-102","Isolation des murs (tertiaire métropole)","metropole"],
+["BAT-EN-108","Isolation des murs (tertiaire outre-mer)","dom"],
+["BAT-EQ-124","Fermeture des meubles frigorifiques à température positive","tous"],
+["BAT-EQ-125","Fermeture des meubles frigorifiques à température négative","tous"],
+["BAT-EQ-130","Système de condensation frigorifique à haute efficacité","tous"],
+["BAT-TH-103","Plancher chauffant hydraulique à basse température","tous"],
+["BAT-TH-109","Optimiseur de relance en chauffage collectif","tous"],
+["BAT-TH-142","Déstratificateur ou brasseur d'air (tertiaire)","metropole"],
+["BAT-TH-154","Récupération instantanée de chaleur sur eaux grises","tous"],
+["IND-BA-110","Déstratificateur ou brasseur d'air (industrie)","metropole"],
+["BAT-TH-116","Gestion technique du bâtiment (GTB)","tous"],
+["BAT-TH-122","Programmateur d'intermittence pour la climatisation","dom"],
+["BAT-TH-134","Haute pression flottante sur groupe froid (métropole)","metropole"],
+["BAT-TH-135","Haute pression flottante sur groupe froid (outre-mer)","dom"],
+["BAT-TH-139","Récupération de chaleur sur groupe de production de froid","tous"],
+["BAT-TH-143","Ventilo-convecteur haute efficacité","tous"],
+["BAT-TH-145","Basse pression flottante sur groupe froid","metropole"],
+["BAT-TH-153","Confinement des allées en data center","tous"],
+["BAT-TH-156","Régulation performante sur production de froid (freecooling)","tous"],
+["BAT-TH-161","Pompe à chaleur en maintien de groupes électrogènes","tous"],
+["IND-UT-134","Mesurage de la performance énergétique industrielle","tous"],
+["RES-EC-104","Rénovation d'éclairage extérieur","tous"],
+["TRA-SE-104","Station de gonflage des pneumatiques","tous"],
+["BAR-EN-109","Réduction des apports solaires par la toiture (résidentiel outre-mer)","dom"],
+["BAT-TH-121","Chauffe-eau solaire (tertiaire outre-mer)","dom"],
+["BAR-EN-101","Isolation de combles ou de toitures (résidentiel)","metropole"],
+["BAR-EN-102","Isolation des murs (résidentiel)","metropole"],
+["BAR-EN-103","Isolation d'un plancher (résidentiel)","metropole"],
+["BAR-EN-105","Isolation des toitures terrasses (résidentiel)","metropole"],
+["BAR-EN-106","Isolation de combles ou de toitures (résidentiel outre-mer)","dom"],
+["BAR-SE-104","Équilibrage d'une installation de chauffage à eau chaude","metropole"],
+["BAR-TH-123","Optimiseur de relance en chauffage collectif (résidentiel)","metropole"],
+["BAR-SE-108","Désembouage d'un réseau hydraulique de chauffage","metropole"],
+["BAR-TH-110","Radiateur basse température","metropole"],
+["BAR-TH-117","Robinet thermostatique","metropole"],
+["BAR-TH-158","Émetteur électrique à régulation avancée","metropole"],
+["BAR-TH-116","Plancher chauffant hydraulique à basse température (résidentiel)","metropole"],
+["BAR-TH-160","Isolation d'un réseau hydraulique de chauffage ou d'ECS","metropole"],
+["BAR-TH-170","Récupération de chaleur fatale de serveurs pour ECS collective","metropole"],
+["BAR-TH-177","Rénovation thermique globale d'un bâtiment résidentiel collectif","metropole"],
+["BAT-EN-101","Isolation de combles ou de toitures (tertiaire métropole)","metropole"],
+["BAT-EN-103","Isolation d'un plancher (tertiaire)","tous"],
+["BAT-EN-113","Façade rideau avec vitrage isolant (tertiaire)","tous"],
+["BAT-EN-106","Isolation de combles ou de toitures (tertiaire outre-mer)","dom"],
+["BAT-EN-111","Fenêtre à vitrage pariétodynamique (tertiaire)","tous"],
+["BAT-EQ-129","Lanterneaux d'éclairage zénithal (tertiaire)","tous"],
+["BAT-TH-159","Raccordement d'un bâtiment tertiaire à un réseau de froid","tous"],
+["IND-EN-101","Isolation des murs (industrie outre-mer)","dom"],
+["IND-EN-102","Isolation de combles ou de toitures (industrie outre-mer)","dom"],
+["IND-UT-102","Variation électronique de vitesse sur moteur asynchrone (industrie)","tous"],
+["IND-UT-104","Économiseur sur les effluents gazeux d'une chaudière vapeur","tous"],
+["IND-UT-122","Sécheur d'air comprimé à adsorption avec apport calorifique","tous"],
+["IND-UT-115","Basse pression flottante sur groupe froid (industrie)","tous"],
+["IND-UT-120","Compresseur d'air basse pression à vis ou centrifuge","tous"],
+["TRA-EQ-103","Télématique embarquée pour le suivi de la conduite","tous"],
+["BAT-TH-163","Pompe à chaleur air/eau (tertiaire)","tous"],
+["BAT-TH-164","Pompe à chaleur eau/eau ou eau glycolée/eau (tertiaire)","tous"],
+["BAT-TH-140","Pompe à chaleur à absorption air/eau ou eau/eau (tertiaire)","tous"],
+["BAT-TH-112","Variation électronique de vitesse sur moteur asynchrone (tertiaire)","tous"],
+["BAT-TH-110","Récupérateur de chaleur à condensation (tertiaire)","tous"],
+["BAT-EQ-131","Conduits de lumière naturelle (tertiaire)","tous"],
+["IND-UT-114","Moto-variateur synchrone à aimants permanents ou à réluctance","tous"],
+["IND-UT-103","Récupération de chaleur sur compresseur d'air (industrie)","tous"],
+["IND-UT-118","Brûleur avec récupération de chaleur sur four industriel","tous"],
+["IND-UT-132","Moteur asynchrone de classe IE4 (industrie)","tous"],
+["IND-UT-137","PAC en rehausse de température sur chaleur fatale (industrie)","tous"],
+["IND-UT-139","Stockage de chaleur fatale (industrie)","tous"],
+["BAR-TH-111","Régulation par sonde de température extérieure (résidentiel)","metropole"],
+["BAR-TH-176","Régulation d'un chauffe-eau électrique à effet Joule (résidentiel)","metropole"],
+["BAR-EN-107","Isolation des murs (résidentiel outre-mer)","dom"],
+["TRA-EQ-101","Unité de transport intermodal rail-route","tous"],
+["TRA-EQ-106","Pneus de véhicules légers à basse résistance au roulement","tous"],
+["BAR-EN-104","Fenêtre ou porte-fenêtre à vitrage isolant (résidentiel)","metropole"],
+["BAT-EN-104","Fenêtre ou porte-fenêtre à vitrage isolant (tertiaire)","tous"],
+["BAR-TH-148","Chauffe-eau thermodynamique à accumulation (résidentiel)","metropole"],
+["BAR-TH-179","Pompe à chaleur collective air/eau (résidentiel collectif)","metropole"],
+["BAT-TH-126","Ventilation mécanique double flux avec échangeur (tertiaire)","tous"],
+["BAT-SE-103","Équilibrage d'une installation de chauffage à eau chaude (tertiaire)","tous"],
+["BAT-TH-115","Climatiseur performant (tertiaire outre-mer)","dom"],
+["BAT-TH-141","Pompe à chaleur à moteur gaz air/eau (tertiaire)","tous"],
+["BAT-TH-111","Chauffe-eau solaire collectif (tertiaire métropole)","metropole"],
+["IND-BA-117","Chauffage décentralisé performant (industrie)","tous"],
+["IND-UT-113","Système de condensation frigorifique à haute efficacité (industrie)","tous"],
+["TRA-EQ-114","Véhicule léger électrique neuf ou rétrofité (usage professionnel)","tous"],
+["TRA-EQ-117","Véhicule léger électrique neuf ou rétrofité (autre cas)","tous"],
+["TRA-EQ-128","Autobus ou autocar électrique neuf ou rétrofité","tous"],
+["TRA-EQ-129","Véhicule lourd électrique de marchandises neuf ou rétrofité","tous"],
+["TRA-EQ-130","Quadricycle électrique neuf","tous"],
+["TRA-EQ-131","Vélo-cargo à assistance électrique","tous"],
+["TRA-EQ-133","Voiture particulière électrique d'occasion","tous"],
+["TRA-EQ-121","Vélo à assistance électrique","tous"],
+["TRA-EQ-125","Stop and Start pour véhicules ferroviaires","tous"],
+["TRA-EQ-124","Branchement électrique des navires et bateaux à quai","tous"],
+["TRA-EQ-109","Barge fluviale","tous"],
+["TRA-EQ-111","Groupe frigorifique autonome à haute efficacité (transport)","tous"],
+["TRA-EQ-113","Lubrifiant économiseur d'énergie pour le transport fluvial","tous"],
+["TRA-EQ-104","Lubrifiant économiseur d'énergie pour véhicules légers","tous"],
+["TRA-EQ-107","Unité de transport intermodal fluvial-route","tous"],
+["BAT-TH-127","Raccordement d'un bâtiment tertiaire à un réseau de chaleur","tous"],
+["RES-CH-108","Récupération de chaleur fatale vers un réseau de chaleur ou un tiers","metropole"],
+["BAT-EQ-117","Installation frigorifique au CO2 subcritique ou transcritique (tertiaire)","tous"],
+["BAT-TH-157","Chaudière biomasse collective (tertiaire)","tous"],
+["BAR-TH-102","Chauffe-eau solaire collectif (résidentiel métropole)","metropole"],
+["BAR-TH-155","Ventilation hybride hygroréglable (résidentiel métropole)","metropole"],
+["BAR-TH-161","Housses isolantes de points singuliers (résidentiel)","metropole"],
+["TRA-EQ-120","Moteur électrique pour bateau de navigation intérieure (automoteur)","tous"],
+["TRA-EQ-127","Acquisition d'un bateau neuf électrique ou hybride","tous"],
+["TRA-EQ-126","Remotorisation électrique ou hybride d'un bateau","tous"],
+["TRA-EQ-123","Simulateur de conduite","tous"],
+["TRA-EQ-119","Optimisation de la combustion et de la propreté du carburant","tous"],
+["AGRI-EQ-106","Régulation de la ventilation des silos et installations de stockage en vrac de céréales","metropole"],
+["AGRI-EQ-107","Séchoir en grange à énergie renouvelable","tous"],
+["AGRI-SE-101","Contrôle et préconisations de réglage du moteur d’un tracteur","tous"],
+["AGRI-TH-101","Dispositif de stockage d’eau chaude type Open Buffer","tous"],
+["AGRI-TH-102","Dispositif de stockage d’eau chaude","tous"],
+["AGRI-TH-108","Pompe à chaleur air/eau ou eau/eau","tous"],
+["AGRI-TH-110","Chaudière à haute performance énergétique pour serres","tous"],
+["AGRI-TH-113","Échangeur récupérateur de chaleur air/air dans un bâtiment d’élevage de volailles","tous"],
+["AGRI-TH-119","Système de déshumidification avec air extérieur","tous"],
+["AGRI-UT-101","Moto-variateur synchrone à aimants permanents ou à réluctance","tous"],
+["AGRI-UT-102","Variation électronique de vitesse sur moteur asynchrone","tous"],
+["AGRI-UT-103","Basse pression flottante sur groupe de production de froid","tous"],
+["IND-BA-113","Lanterneaux d’éclairage zénithal (France métropolitaine)","tous"],
+["IND-BA-114","Conduits de lumière naturelle","tous"],
+["IND-UT-105","Brûleur micromodulant sur chaudière industrielle","tous"],
+["IND-UT-116","Haute pression flottante sur groupe de production de froid","metropole"],
+["IND-UT-124","Séquenceur électronique pour centrale d’air comprimé","tous"],
+["IND-UT-125","Traitement d’eau performant chaudière vapeur","tous"],
+["IND-UT-127","Système de transmission performant","metropole"],
+["IND-UT-129","Presse à injecter toute électrique ou hybride","metropole"],
+["IND-UT-130","Condenseur sur effluents gazeux chaudière vapeur","tous"],
+["IND-UT-131","Isolation thermique parois d’installations industrielles","tous"],
+["IND-UT-133","Pilotage moteur avec récupération d’énergie","tous"],
+["IND-UT-138","Conversion chaleur fatale en électricité ou air comprimé","tous"],
+["RES-CH-103","Réhabilitation d’un poste de livraison de chaleur d’un bâtiment tertiaire","tous"],
+["RES-CH-104","Réhabilitation d’un poste de livraison de chaleur d’un bâtiment résidentiel","tous"],
+["RES-CH-105","Passage d’un réseau de chaleur en basse température","metropole"],
+["RES-CH-106","Calorifugeage des canalisations d’un réseau de chaleur","tous"],
+["BAR-EN-108","Fermeture isolante","tous"],
+["BAR-EQ-115","Dispositif d’affichage et d’interprétation des consommations d’énergie","metropole"],
+["BAR-SE-105","Contrat de Performance Énergétique Services (CPE Services)","tous"],
+["BAR-SE-106","Service de suivi des consommations d’énergie","tous"],
+["BAR-SE-107","Abaissement de la température de retour vers un réseau de chaleur","metropole"],
+["BAR-TH-124","Chauffe-eau solaire individuel – Outre-mer","dom"],
+["BAR-TH-137","Raccordement bâtiment résidentiel à un réseau de chaleur","tous"],
+["BAR-TH-141","Climatiseur performant (France d’outre-mer)","dom"],
+["BAR-TH-159","Pompe à chaleur hybride individuelle","tous"],
+["BAR-TH-162","PVT eau : capteurs photovoltaïques + thermiques","tous"],
+["BAR-TH-168","Dispositif solaire thermique – Métropole","metropole"],
+["BAR-TH-172","PAC eau/eau ou sol/eau","tous"],
+["BAR-TH-178","Système géothermique collectif","tous"],
+["BAT-EN-109","Réduction des apports solaires par la toiture — Outre-mer","dom"],
+["BAT-EN-110","Protections des baies contre le rayonnement solaire — Outre-mer","dom"],
+["BAT-EN-112","Revêtements réflectifs en toiture","metropole"],
+["BAT-EQ-123","Moto-variateur synchrone à aimants permanents ou réluctance","metropole"],
+["BAT-EQ-134","Meuble frigorifique de vente performant avec groupe de froid intégré","tous"],
+["BAT-EQ-135","Dispositif performant d’alimentation sans interruption","tous"],
+["BAT-SE-105","Abaissement de la température de retour vers un réseau de chaleur","metropole"],
+["BAT-TH-105","Radiateur basse température pour un chauffage central","tous"],
+["BAT-TH-108","Système de régulation par programmation d’intermittence","tous"],
+["BAT-TH-125","Ventilation mécanique simple flux à débit constant ou modulé","tous"],
+["BAT-TH-158","PAC réversible air/air","metropole"],
+["TRA-EQ-110","Automoteur fluvial","tous"],
+["TRA-EQ-115","Véhicule de transport de marchandises optimisé","tous"],
+["TRA-EQ-122","« Stop & Start » pour engins automoteurs non routiers neufs","tous"],
+["TRA-SE-101","Formation d’un chauffeur de transport à la conduite économe","tous"],
+["TRA-EQ-118","Lubrifiant économiseur d'énergie pour la pêche","tous"],
+["TRA-EQ-132","Appareil de mesure et d'optimisation pour navire de pêche","tous"],
+["BAT-SE-104","Contrat de performance énergétique services (tertiaire)","tous"],
+["BAR-TH-101","Chauffe-eau solaire individuel (résidentiel métropole)","metropole"],
+["BAR-TH-127","Ventilation mécanique simple flux hygroréglable (résidentiel métropole)","metropole"],
+["AGRI-UT-104","Haute pression flottante sur groupe de froid (agriculture)","tous"],
+["BAR-TH-125","Ventilation double flux autoréglable ou modulée (résidentiel métropole)","metropole"],
+["BAR-TH-143","Système solaire combiné (résidentiel métropole)","metropole"],
+["BAT-EN-107","Isolation des toitures-terrasses (tertiaire)","metropole"],
+["AGRI-TH-109","Déshumidification par ventilation en serre","tous"]
+];
+
+/* ---------- démonstration ---------- */
+function miniPDF(lines){
+  const txt=lines.map((l,i)=>`BT /F1 ${i===0?14:10} Tf 50 ${770-i*18} Td (${l.replace(/[()\\]/g,'').replace(/[^\x20-\x7E]/g,'')}) Tj ET`).join('\n');
+  const objs=['<< /Type /Catalog /Pages 2 0 R >>','<< /Type /Pages /Kids [3 0 R] /Count 1 >>','<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>',`<< /Length ${txt.length} >>\nstream\n${txt}\nendstream`,'<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>'];
+  let out='%PDF-1.4\n',offs=[];
+  objs.forEach((o,i)=>{offs.push(out.length);out+=`${i+1} 0 obj\n${o}\nendobj\n`;});
+  const x=out.length;
+  out+=`xref\n0 ${objs.length+1}\n0000000000 65535 f \n`+offs.map(o=>String(o).padStart(10,'0')+' 00000 n \n').join('')+`trailer\n<< /Size ${objs.length+1} /Root 1 0 R >>\nstartxref\n${x}\n%%EOF`;
+  return btoa(out);
+}
+const DEMO=[
+ // 0 type 1 raison 2 prénom 3 nom 4 tél 5 mail 6 adresse 7 cp 8 ville 9 secteur 10 fiche 11 décalage j 12 technicien 13 donneur d'ordre
+ // 14 ÉTAT VT 15 statut commercial 16 résumé 17 chauffage 18 surfaces 19 bâtiment 20 équipements 21 points 22 conclusion 23 options
+ ['B2B','Scierie des Hauts Bois','Marc','Lefèvre','06 12 45 78 90','contact@scierie-hautsbois.fr','12 route de la Forêt','88400','Gérardmer','Scierie','AGRI-EQ-110',-42,'Julien R.','Solaris Énergie','Rapport reçu','À rappeler',
+  'Scierie familiale de 9 salariés produisant du sapin et de l\'épicéa de charpente. Le séchage se fait dans un bâtiment fermé de 1 100 m² abritant trois cellules, alimentées par un générateur d\'air chaud au propane de 2011. La toiture bac acier de 780 m² est orientée plein sud sans aucun masque. Le gérant est propriétaire des murs et cherche à réduire une facture propane d\'environ 38 000 € par an.',
+  'propane — générateur d\'air chaud 2011, 2 cuves de 3 000 L','bâtiment de séchage fermé 1 100 m² · toiture exploitable 780 m² · surface équipable retenue 620 m² (80 %)','hangar bois 2009, bardage bois, bac acier non isolé, pente 15 %, orientation sud','3 cellules de séchage · 2 ventilateurs 15 kW · 1 générateur air chaud 300 kW · raccordement 250 kVA',
+  ['Produits séchés : bois résineux (catégorie forestière)','Séchage basse température 35–40 °C compatible système neuf','Consommation propane ≈ 38 000 €/an','Volume séché ≈ 4 200 m³/an'],
+  'Site très favorable : bâtiment fermé, toiture sud dégagée, besoin de chaleur continu. Dimensionnement estimé : 227 panneaux hybrides, ≈ 368 kW thermiques.',{rappelEchu:true,note:'Rappelé une première fois, le gérant demande une simulation chiffrée avant décision.'}],
+
+ ['B2B','EARL Maraîchage Vidal','Sophie','Vidal','06 34 21 09 87','earl.vidal@orange.fr','Chemin des Serres','84300','Cavaillon','Maraîchage sous serre','AGRI-EQ-102',-120,'Karim B.','Serres Provence','Rapport reçu','Rappelé',
+  'Exploitation maraîchère de 4 800 m² sous deux serres verre de 2 400 m² chacune, en production de tomates et concombres de février à novembre. Le chauffage est assuré par huit aérothermes au gaz naturel pilotés par un ordinateur climatique Priva. Les écrans thermiques simples datent de 2009 et présentent des déchirures. Un groupe froid de 40 kW assure la conservation en station de conditionnement.',
+  'gaz naturel — 8 aérothermes, consommation ≈ 420 MWh/an','2 serres verre × 2 400 m² · station de conditionnement 350 m²','serres Venlo 1998, chapelles 9,60 m, hauteur sous chéneau 4,5 m','ordinateur climatique Priva · 8 aérothermes 60 kW · 1 groupe froid 40 kW · écrans thermiques simples 2009',
+  ['Écrans thermiques à remplacer : double écran éligible','Hygrométrie hivernale élevée, botrytis récurrent','Chaleur fatale du groupe froid non récupérée','Exploitante décisionnaire, sensible aux aides'],
+  'Double écran thermique justifié sur les 4 800 m². Deux pistes complémentaires : déshumidification par air extérieur et récupération de chaleur sur le groupe froid.',{rappelFutur:5}],
+
+ ['B2C','','Isabelle','Rousseau','06 45 12 98 76','i.rousseau@gmail.com','7 rue des Tilleuls','44120','Vertou','Maison individuelle','BAR-TH-171',-60,'Yann L.','Atlantique Chauffage','Rapport reçu','En attente',
+  'Maison individuelle de 1988 de 128 m² habitables sur un seul niveau avec combles perdus, occupée par sa propriétaire retraitée. Le chauffage est assuré par une chaudière fioul de 2003 de 25 kW alimentant neuf radiateurs en fonte, avec production d\'eau chaude sanitaire intégrée. Fenêtres PVC double vitrage de 2010. Une cuve fioul de 1 500 L est enterrée dans le jardin.',
+  'fioul — chaudière 2003, 25 kW, ECS intégrée · consommation ≈ 2 100 L/an','128 m² habitables · combles perdus 90 m²','maison 1988, plain-pied, murs parpaing non isolés, combles isolés en 2015, DV PVC 2010','chaudière fioul 25 kW · 9 radiateurs fonte · cuve enterrée 1 500 L · 12 kVA monophasé',
+  ['Radiateurs fonte compatibles PAC basse température','Emplacement extérieur disponible côté nord','Murs non isolés : perte principale restante','Revenus modestes déclarés'],
+  'PAC air/eau 11 kW adaptée en remplacement complet de la chaudière fioul. À prévoir : neutralisation de la cuve.',{}],
+
+ ['B2B','Hôtel Le Belvédère','Nadia','Benali','04 93 55 12 34','direction@belvedere-nice.fr','18 promenade des Anglais','06000','Nice','Hôtellerie','BAT-TH-122',-200,'Julien R.','Clim Azur','Rapport reçu','RDV pris',
+  'Hôtel trois étoiles de 64 chambres sur cinq niveaux, ouvert toute l\'année avec un pic d\'occupation d\'avril à octobre. Chaque chambre est climatisée par un split individuel sans aucune programmation : les unités tournent fréquemment chambres vides. Le chauffage central est assuré par une chaudière gaz de 2008. L\'éclairage des parties communes reste en halogène. Aucune gestion technique centralisée.',
+  'gaz — chaudière 2008, 350 kW · climatisation électrique par splits','surface chauffée et climatisée 3 200 m² · 64 chambres · restaurant 180 m²','immeuble 1965, 5 niveaux, toiture terrasse 640 m², DV sur 60 % des ouvrants','64 splits (2012–2016) · chaudière 350 kW · 120 luminaires halogènes · 2 ascenseurs',
+  ['Programmateurs d\'intermittence sur 64 unités','Toiture terrasse 640 m² libre','Direction motivée par les coûts d\'été','Pas de GTB : opération complémentaire naturelle'],
+  'Programmation d\'intermittence sur l\'ensemble des splits, rentable dès la première saison.',{rappelFutur:3,note:'RDV fixé sur site avec la directrice et le responsable technique.'}],
+
+ ['B2B','Garage Central Poids Lourds','Franck','Dubois','05 61 22 33 44','contact@gcpl31.fr','ZI de Montaudran','31400','Toulouse','Transport routier','TRA-SE-104',-300,'Karim B.','Fleet Services','Rapport reçu','Dossier signé',
+  'Entreprise de transport routier exploitant 38 poids lourds et 12 semi-remorques depuis un dépôt de 6 000 m² avec atelier intégré de 1 400 m². Le gonflage se faisait manuellement sans contrôle systématique. L\'atelier est chauffé par aérothermes gaz et éclairé par 96 tubes fluorescents.',
+  'gaz — 4 aérothermes 45 kW (atelier)','atelier 1 400 m² · parking 6 000 m² · bureaux 220 m²','bâtiment 1995, bardage métallique simple peau, toiture fibrociment 1 400 m²','38 PL + 12 semis · 96 tubes fluo · 2 compresseurs 22 kW · pont élévateur',
+  ['Station de gonflage installée','Éclairage atelier à rénover','Renouvellement partiel de flotte prévu 2026','Toiture fibrociment : pas de solaire sans désamiantage'],
+  'Station de gonflage réalisée. Le site reste ouvert à d\'autres opérations flotte et bâtiment.',{}],
+
+ ['B2B','SARL Bois Guyane Export','Rodrigue','Alexandre','06 94 55 66 77','contact@boisguyane.gf','ZI de Dégrad des Cannes','97354','Rémire-Montjoly','Exploitation forestière','AGRI-EQ-110',-10,'Ludovic M.','Solaris Énergie','Rapport reçu','À rappeler',
+  'Scierie de bois tropicaux (angélique, gonfolo) avec un séchoir fermé de 1 860 m² alimenté par une chaudière à déchets de bois de 2018. Toiture bac acier de 1 500 m² sans ombrage, très bien exposée. Raccordement électrique de 630 kVA. Le gérant, décisionnaire, souhaite fiabiliser le séchage en saison des pluies.',
+  'bois — chaudière déchets de bois 2018, 400 kW','séchoir fermé 1 860 m² · toiture exploitable 1 500 m² · surface équipable retenue 1 490 m²','bâtiment 2018, charpente métallique, bac acier, hauteur 7 m, zone H3','chaudière 400 kW · 6 ventilateurs 22 kW · 2 séchoirs à claires-voies · 630 kVA',
+  ['Zone H3, bonification ZNI ×2','Toiture parfaitement dégagée','Produits forestiers : catégorie la mieux dotée','Volume séché ≈ 9 000 m³/an'],
+  'Site exemplaire pour le séchage solaire hybride : ≈ 545 panneaux, ≈ 883 kW thermiques. Dossier prioritaire.',{rappelFutur:2}],
+
+ ['B2C','','Marie-Josée','Baptiste','06 96 11 22 33','','Quartier Morne Rouge','97200','Fort-de-France','Maison individuelle','BAR-TH-129',-25,'Ludovic M.','Antilles Clim','Rapport reçu','Refus',
+  'Maison de 110 m² sur deux niveaux, toiture tôle de 130 m², occupée par une famille de cinq personnes. Quatre splits de 2009 climatisent les chambres et le séjour. Eau chaude par chauffe-eau électrique de 200 L. Aucune ventilation mécanique.',
+  'électrique — 4 splits 2009 · chauffe-eau électrique 200 L','110 m² habitables · toiture tôle 130 m² orientée est-ouest','maison 2001, RDC + étage, murs parpaing, toiture tôle','4 splits 2009 · chauffe-eau 200 L · tableau 9 kVA',
+  ['Splits énergivores, à remplacer','Toiture tôle exploitable en solaire thermique','Bonification ZNI applicable','Famille nombreuse : besoin ECS élevé'],
+  'Remplacement des 4 splits par des unités inverter. Piste immédiate : chauffe-eau solaire individuel.',{optout:true,note:'Ne souhaite plus être contactée : travaux reportés sine die.'}],
+
+ ['B2B','Minoterie Gauthier','Vincent','Gauthier','02 38 44 55 66','direction@minoterie-gauthier.fr','Route de Chartres','45300','Pithiviers','Agroalimentaire','IND-UT-102',-110,'Mehdi K.','Motors & Drives','Rapport reçu','Injoignable',
+  'Minoterie de 3 400 m² écrasant 45 000 tonnes de blé par an, en fonctionnement 6 000 heures. Vingt-quatre moteurs asynchrones de 5 à 45 kW entraînent broyeurs, élévateurs et ventilateurs, tous en démarrage direct. Deux compresseurs de 55 kW alimentent le réseau d\'air comprimé.',
+  'électrique — 630 kVA souscrits, ≈ 2,9 GWh/an','usine 3 400 m² · silos 12 000 t · bureaux 180 m²','bâtiment 1970 avec extension 2004, hauteur 12 m, silos béton','24 moteurs (total 480 kW) · 2 compresseurs 55 kW · 6 000 h/an',
+  ['Fort potentiel de variateurs','Fonctionnement quasi continu','Fuites d\'air comprimé constatées','Décision en binôme gérant / production'],
+  'Variation électronique de vitesse sur les 14 moteurs à charge variable (≈ 310 kW).',{rappelEchu:true,note:'Quatre tentatives d\'appel sans réponse, standard injoignable.'}],
+
+ ['B2B','Métallerie Brun & Fils','Laurent','Brun','04 76 22 33 44','','12 rue de l\'Industrie','38100','Grenoble','Métallerie','IND-BA-110',-6,'Karim B.','Air & Chaleur Alpes','Effectuée','En attente','','','','','',[],'',{note:'VT réalisée, le technicien doit encore transmettre son rapport.'}],
+
+ ['B2C','','Sylvain','Roche','06 33 44 55 66','','22 rue du Moulin','63000','Clermont-Ferrand','Maison individuelle','BAR-EN-101',-3,'Julien R.','Auvergne Isolation','Effectuée','En attente','','','','','',[],'',{}],
+
+ ['B2B','Camping Les Flots Bleus','Céline','Marchand','05 46 77 88 99','contact@flotsbleus17.fr','Route de la Plage','17570','La Tremblade','Hôtellerie de plein air','BAT-EN-101',9,'Yann L.','Atlantique Isolation','Reportée','En attente','','','','','',[],'',
+  {histo:[{j:-4,de:'Planifiée',vers:'Reportée',ancienne:-2,motif:'gérante absente, reprise après la saison'}]}],
+
+ ['B2B','Serres Horticoles Ducasse','Olivier','Ducasse','06 12 34 56 78','','Route de Saint-Omer','62500','Saint-Omer','Horticulture','AGRI-EQ-102',0,'Mehdi K.','Serres Nord','Technicien envoyé','En attente','','','','','',[],'',{}],
+
+ ['B2C','','Nathalie','Weber','06 44 55 66 77','','8 rue des Vosges','67000','Strasbourg','Maison individuelle','BAR-TH-171',6,'Julien R.','Alsace Chauffage','Planifiée','En attente','','','','','',[],'',{}],
+
+ ['B2B','Coopérative Laitière du Ségala','Pierre','Delmas','05 65 11 22 33','','Route de Rodez','12000','Rodez','Élevage laitier','AGRI-TH-104',0,'','Froid Occitanie','Demandée','En attente','','','','','',[],'',
+  {note:'Demande reçue du donneur d\'ordre, technicien et date à caler.'}],
+
+ ['B2B','Entrepôt Frigorifique Jarry','Sandra','Bernier','06 90 22 33 44','','Zone de Jarry','97122','Baie-Mahault','Logistique frigorifique','BAT-TH-122',-14,'Ludovic M.','Antilles Clim','Annulée','En attente','','','','','',[],'',
+  {histo:[{j:-14,de:'Planifiée',vers:'Annulée',motif:'site vendu, nouveau propriétaire non intéressé'}]}],
+
+ ['B2C','','Karim','Bouzid','06 22 33 44 55','','5 allée des Chênes','93200','Saint-Denis','Appartement','BAR-TH-127',-20,'Mehdi K.','Île-de-France Ventilation','Non concluante','En attente',
+  'Appartement de 62 m² au 4e étage sans ascenseur. Le technicien n\'a pas pu accéder aux gaines techniques, fermées par la copropriété. Chauffage collectif gaz, aucune ventilation mécanique constatée dans les pièces humides.',
+  'gaz collectif','62 m²','immeuble 1971, copropriété de 48 lots','aucune VMC · gaines inaccessibles',
+  ['Accord du syndic nécessaire avant toute intervention','Condensation visible en salle de bains'],
+  'Visite à refaire avec l\'accord de la copropriété et l\'accès aux gaines.',
+  {histo:[{j:-20,de:'Effectuée',vers:'Non concluante',motif:'accès aux gaines refusé par le syndic'}]}]
+];
+
+async function chargerDemo(){
+  const now=new Date(), iso=t=>new Date(t).toISOString().slice(0,10);
+  for(const r of DEMO){
+    const [type,rs,pre,nom,tel,email,adr,cp,ville,sect,fiche,off,tech,dos,etat,statut,resume,chauf,surf,bat,eq,pts,concl,opt={}]=r;
+    const date=iso(now.getTime()+off*864e5);
+    const v={id:uid(),createdAt:now.getTime()-Math.abs(off)*864e5,type,raison_sociale:rs,
+      siret:type==='B2B'?String(Math.floor(1e13+Math.random()*9e13)):'',naf:'',prenom:pre,nom,tel,email,
+      adresse:adr,cp,ville,dept:deptOf(cp),secteur:sect,fiche,date,technicien:tech,donneur_ordre:dos,
+      notes:'',etat,statut,optout:!!opt.optout,saisi_par:'Confirmateur',files:[],suivi:[],demo:true};
+    if(resume){
+      const name='VT_'+(rs||nom).replace(/[^a-z0-9]/gi,'_')+'_'+date+'.pdf';
+      const b64=miniPDF(['RAPPORT DE VISITE TECHNIQUE — '+fiche,'Client : '+(rs||pre+' '+nom),
+        'Adresse : '+adr+', '+cp+' '+ville,'Date : '+date+'   Technicien : '+tech,'Donneur d ordre : '+dos,'',
+        'Chauffage : '+chauf,'Surfaces : '+surf,'Batiment : '+bat,'Equipements : '+eq,'','Observations :',
+        ...resume.split('. ').filter(Boolean).map(s=>' - '+s),'','Conclusion du technicien :',' '+concl]);
+      const fid=uid();
+      try{await Store.set(fk(fid),{b64,name,type:'application/pdf'});v.files.push({id:fid,name,size:Math.round(b64.length*0.75),type:'application/pdf'});}catch(e){}
+      v.audit={resume,chauffage:chauf,surface:surf,batiment:bat,equipements:eq,points:pts,conclusion:concl,date,fichiers:1};
+    }
+    if(opt.histo)v.histoVT=opt.histo.map(x=>{
+      const d=iso(now.getTime()+x.j*864e5).split('-').reverse().join('/');
+      const chg=x.ancienne!==undefined?' (VT du '+iso(now.getTime()+x.ancienne*864e5).split('-').reverse().join('/')+' au '+date.split('-').reverse().join('/')+')':'';
+      return d+' · '+x.de+' → '+x.vers+chg+(x.motif?' — '+x.motif:'')+' · Confirmateur';});
+    if(opt.rappelEchu)v.rappel=iso(now.getTime()-(2+Math.floor(Math.random()*5))*864e5);
+    if(opt.rappelFutur)v.rappel=iso(now.getTime()+opt.rappelFutur*864e5);
+    if(statut!=='En attente')v.confirme_par=Math.random()<.5?'Bratan':'Amir';
+    if(opt.note)v.suivi.push({d:iso(now.getTime()-Math.floor(3+Math.random()*12)*864e5),par:v.confirme_par||'Confirmateur',t:opt.note});
+    if(statut==='Dossier signé')v.suivi.push({d:iso(now.getTime()-6*864e5),par:v.confirme_par||'Bratan',t:'Devis signé, dossier transmis à l\'obligé.'});
+    visites.push(v);
+  }
+  await save();
+}
+async function retirerDemo(){
+  for(const v of visites.filter(x=>x.demo))for(const f of(v.files||[]))await Store.del(fk(f.id));
+  visites=visites.filter(x=>!x.demo);await save();
+}
+
+/* ---------- stockage ---------- */
+const Store=(()=>{const ws=typeof window!=='undefined'&&window.storage&&typeof window.storage.get==='function';return{
+  async get(k){if(ws){try{const r=await window.storage.get(k);return r?JSON.parse(r.value):null;}catch(e){return null;}}try{const v=localStorage.getItem(k);return v?JSON.parse(v):null;}catch(e){return null;}},
+  async set(k,v){const s=JSON.stringify(v);if(ws){await window.storage.set(k,s);return;}try{localStorage.setItem(k,s);}catch(e){throw new Error('stockage indisponible');}},
+  async del(k){if(ws){try{await window.storage.delete(k);}catch(e){}return;}localStorage.removeItem(k);}};})();
+const K='visittrack:visites', KS='visittrack:session', KD='visittrack:demo', fk=id=>'visittrack:file:'+id;
+
+const SECT_LABEL={AGRI:'Agriculture',BAR:'Résidentiel',BAT:'Tertiaire',IND:'Industrie',RES:'Réseaux',TRA:'Transport'};
+const FMAP=Object.fromEntries(FICHES.map(f=>[f[0],f]));
+const ficheTitre=c=>FMAP[c]?FMAP[c][1]:'';
+const ETATS=['Demandée','Planifiée','Technicien envoyé','Effectuée','Rapport reçu','Reportée','Annulée','Non concluante'];
+const ETAT_CLS={'Demandée':'','Planifiée':'a','Technicien envoyé':'a','Effectuée':'v','Rapport reçu':'v','Reportée':'a','Annulée':'r','Non concluante':'r'};
+const STATUTS=['En attente','À rappeler','Rappelé','RDV pris','Dossier signé','Refus','Injoignable'];
+
+let view='tableau';
+let q='', filtreFiche='', filtreType='', filtreStatut='', filtrePeriode='', filtreEtat='', filtreTech='';
+let repVue='fiche';
+let catQ='', catSect='';
+let sortKey='date', sortDir=-1, pageSize=50, shown=50, sel=new Set();
+
+const uid=()=>Math.random().toString(36).slice(2,10);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtD=d=>{if(!d)return'—';const t=new Date(d);return isNaN(t)?d:t.toLocaleDateString('fr-FR');};
+const deptOf=cp=>{cp=String(cp||'').replace(/\D/g,'');if(cp.length<2)return'';if(cp.startsWith('97')||cp.startsWith('98'))return cp.slice(0,3);if(cp.startsWith('20'))return'Corse';return cp.slice(0,2);};
+const nomClient=v=>v.type==='B2B'?(v.raison_sociale||[v.prenom,v.nom].filter(Boolean).join(' ')||'Sans nom'):([v.prenom,v.nom].filter(Boolean).join(' ')||'Sans nom');
+const peutConfirmer=()=>user&&user.role==='direction';
+function toast(m){const e=document.createElement('div');e.className='toast';e.textContent=m;document.body.appendChild(e);setTimeout(()=>e.remove(),2500);}
+async function load(){const v=await Store.get(K);visites=Array.isArray(v)?v:[];if(!visites.length){let d=null;try{d=await Store.get(KD);}catch(e){}if(d!=='off'){try{await chargerDemo();}catch(e){}}}}
+async function save(){try{await Store.set(K,visites);}catch(e){toast('Enregistrement impossible sur cet appareil');}}
+
+/* ---------- connexion ---------- */
+function gate(){
+  document.getElementById('app').style.display='none';
+  const g=document.getElementById('gate');
+  g.innerHTML=`<div class="gate"><div class="gbox">
+    <div class="logo">Visit<span style="color:var(--vert)">Track</span></div>
+    <div class="tl">Le suivi des visites techniques.</div>
+    <div class="field"><label class="f">Identifiant</label><input type="text" id="gl" autocomplete="username" placeholder="VT-000" autocapitalize="characters"></div>
+    <div class="field"><label class="f">Mot de passe</label><input type="password" id="gp" autocomplete="current-password"></div>
+    <button class="btn w" id="gb">Se connecter</button>
+    <div class="gerr" id="ge"></div>
+  </div></div>`;
+  const go=async()=>{
+    const btn=document.getElementById('gb'); if(btn.disabled) return;
+    const l=document.getElementById('gl').value.trim().toLowerCase(), p=document.getElementById('gp').value;
+    document.getElementById('ge').textContent='';
+    btn.disabled=true; btn.innerHTML='<span class="spin"></span>Connexion…';
+    await new Promise(r=>setTimeout(r,650));
+    const a=ACCES.find(x=>x.login.toLowerCase()===l&&x.mdp===p);
+    if(!a){btn.disabled=false;btn.textContent='Se connecter';document.getElementById('ge').textContent='Identifiant ou mot de passe incorrect.';return;}
+    user={login:a.login,nom:a.nom,role:a.role};
+    btn.innerHTML='<span class="spin"></span>Bienvenue, '+esc(a.nom);
+    await new Promise(r=>setTimeout(r,500));
+    g.querySelector('.gbox').classList.add('leaving'); g.classList.add('out');
+    await new Promise(r=>setTimeout(r,320));
+    enter(true);
+    try{await Store.set(KS,user);}catch(e){}
+  };
+  document.getElementById('gb').onclick=go;
+  g.querySelectorAll('input').forEach(i=>i.onkeydown=e=>{if(e.key==='Enter')go();});
+  setTimeout(()=>document.getElementById('gl').focus(),50);
+}
+function enter(anim){
+  const g=document.getElementById('gate'), app=document.getElementById('app');
+  g.innerHTML=''; g.classList.remove('out');
+  document.getElementById('whoN').textContent=user.nom;
+  document.getElementById('whoR').textContent='· '+ROLE_LABEL[user.role];
+  view='tableau'; render();
+  if(anim){ app.classList.add('in'); app.style.display=''; requestAnimationFrame(()=>requestAnimationFrame(()=>app.classList.remove('in'))); }
+  else app.style.display='';
+}
+function gateOut(){ const app=document.getElementById('app'); app.classList.add('in'); setTimeout(()=>{app.style.display='none';app.classList.remove('in');gate();},450); }
+/* ---------- navigation ---------- */
+function tabsFor(){ return [['tableau','Tableau de bord'],['visites','Visites'],['catalogue','Fiches CEE']]; }
+function render(){
+  document.getElementById('tabs').innerHTML=tabsFor().map(([v,l])=>`<button class="tab ${view===v?'on':''}" data-v="${v}">${l}${v==='visites'?'<span class="n">'+(visites.length||'')+'</span>':v==='catalogue'?'<span class="n">194</span>':''}</button>`).join('');
+  document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{view=t.dataset.v;render();});
+  const el=document.getElementById('view');
+  const V={tableau:vTableau,visites:vVisites,catalogue:vCatalogue,projet:vProjet,apropos:vApropos,contact:vContact,aide:vAide};
+  el.innerHTML=(V[view]||vTableau)();
+  if(render.last!==view){el.classList.remove('sw');void el.offsetWidth;el.classList.add('sw');window.scrollTo({top:0});}
+  render.last=view; bind();
+}
+
+/* ---------- page projet ---------- */
+function vProjet(){
+  const n=visites.length, nr=visites.filter(v=>v.files&&v.files.length).length;
+  return `<div class="page">
+  <div class="hero">
+    <div class="big">${n||'0'}</div>
+    <p style="margin-bottom:18px">VT enregistrée${n>1?'s':''}${nr?' · '+nr+' rapport'+(nr>1?'s':'')+' joint'+(nr>1?'s':''):''}</p>
+    <h1>Une visite technique, ce n'est pas un dossier. C'est un client qu'on connaît déjà. Six mois plus tard, ça vaut de l'or.</h1>
+    <p>VisitTrack suit chaque VT de la demande au rapport, et alerte dès qu'une visite effectuée reste sans PDF. À la lecture du rapport, la plateforme en tire une synthèse — chauffage, surfaces, équipements — et propose les fiches CEE sur lesquelles ce client pourra être rappelé. Quand une nouvelle fiche paraît, les clients éligibles sont déjà là.</p>
+  </div>
+  <div class="roles" style="grid-template-columns:repeat(2,1fr)">
+    <div class="role"><b>Saisie</b><ul><li>Enregistre chaque VT et suit son état : planifiée, technicien envoyé, effectuée, reportée</li><li>Joint le rapport d'audit et lance sa lecture</li><li>Régularise les VT sans rapport</li></ul></div>
+    <div class="role"><b>Direction</b><ul><li>Tableau de bord : cadence, techniciens, alertes</li><li>Filtre par fiche, département, état de VT</li><li>Qualifie les rappels, exporte, sauvegarde</li></ul></div>
+  </div>
+  </div>`;
+}
+
+
+/* ---------- menu latéral ---------- */
+const PAGES=[['tableau','Tableau de bord'],['visites','Visites techniques'],['catalogue','Fiches CEE'],null,['projet','Le projet'],['apropos','Qui sommes-nous'],['aide','Guide d\'utilisation'],['contact','Nous contacter']];
+function openDrawer(){
+  const d=document.getElementById('drawer');
+  d.innerHTML=`<div class="dovl" id="dovl"><div class="dpane" onclick="event.stopPropagation()">
+    <div class="dlogo">Visit<span>Track</span></div>
+    <div class="dtl">Le suivi des visites techniques</div>
+    ${PAGES.map(p=>p?`<button class="dlink ${view===p[0]?'on':''}" data-go="${p[0]}">${p[1]}</button>`:'<div class="dsep"></div>').join('')}
+    <div class="dfoot">Connecté : <b>${esc(user.nom)}</b><br>${ROLE_LABEL[user.role]}<br><br>${visites.length} VT enregistrées</div>
+  </div></div>`;
+  document.getElementById('dovl').onclick=closeDrawer;
+  d.querySelectorAll('[data-go]').forEach(x=>x.onclick=()=>{view=x.dataset.go;closeDrawer();render();});
+}
+function closeDrawer(){const d=document.getElementById('drawer'),o=d.querySelector('.dovl');if(!o)return;o.classList.add('closing');setTimeout(()=>{d.innerHTML='';},210);}
+
+/* ---------- pages ---------- */
+function vApropos(){
+  return `<div class="page">
+  <h1>Qui sommes-nous</h1>
+  <p>VisitTrack est né d'un constat simple, fait par deux sociétés qui travaillent ensemble depuis des années sur les Certificats d'Économies d'Énergie.</p>
+  <h2>Un réseau de techniciens</h2>
+  <p>D'un côté, un opérateur de visites techniques présent dans toute la France métropolitaine et en Corse, mandaté par des installateurs pour se rendre chez leurs clients, relever, mesurer, photographier et produire le rapport qui déclenchera les travaux.</p>
+  <h2>Une expertise CEE</h2>
+  <p>De l'autre, une structure qui travaille le dispositif CEE depuis plusieurs années : montage de dossiers, relation avec les obligés, suivi réglementaire des 194 fiches d'opérations standardisées, en métropole comme en outre-mer.</p>
+  <h2>Ce que nous faisons ensemble</h2>
+  <p>Chacun garde son activité. VisitTrack est l'outil commun : il enregistre les visites réalisées, conserve les rapports, et transforme cet historique en opportunités quand de nouvelles fiches paraissent.</p>
+  </div>`;
+}
+function vAide(){
+  return `<div class="page">
+  <h1>Guide d'utilisation</h1>
+  <h2>1. Enregistrer une VT</h2>
+  <p>Bouton « Nouvelle visite ». Pour un professionnel, saisissez le SIRET : raison sociale, adresse, code NAF et dirigeant se remplissent seuls. Choisissez la fiche CEE pour laquelle la visite est demandée, la date et le technicien.</p>
+  <h2>2. Suivre son état</h2>
+  <p>Chaque VT passe par les états suivants, modifiables depuis la fiche :</p>
+  <ul>
+    <li><b>Demandée</b> — la demande est arrivée, la date n'est pas fixée</li>
+    <li><b>Planifiée</b> — date convenue avec le client</li>
+    <li><b>Technicien envoyé</b> — l'intervention a lieu</li>
+    <li><b>Effectuée</b> — la visite est faite, le rapport reste à joindre</li>
+    <li><b>Rapport reçu</b> — le PDF est dans la fiche, le dossier est complet</li>
+    <li><b>Reportée</b> — nouvelle date, l'ancienne reste dans l'historique</li>
+    <li><b>Annulée</b> et <b>Non concluante</b> — un motif est demandé</li>
+  </ul>
+  <p>Une VT effectuée sans rapport déclenche une alerte rouge tant que le PDF n'est pas déposé.</p>
+  <h2>3. Joindre et lire le rapport</h2>
+  <p>Déposez le PDF dans la fiche. La plateforme le lit et en tire une synthèse : chauffage, surfaces, bâtiment, équipements, points relevés, conclusion du technicien.</p>
+  <h2>4. Réactiver plus tard</h2>
+  <p>Chaque fiche affiche des pistes de rappel déduites du rapport. L'onglet Fiches CEE permet aussi de partir d'une opération et de retrouver tous les clients déjà visités qui s'en rapprochent.</p>
+  <h2>Qui voit quoi</h2>
+  <p><b>Saisie</b> : enregistre, modifie, joint les rapports. <b>Direction</b> : tout cela, plus la qualification commerciale, la suppression, l'export et la sauvegarde.</p>
+  </div>`;
+}
+function vContact(){
+  return `<div class="page">
+  <h1>Nous contacter</h1>
+  <p>Une question sur une fiche, un dossier bloqué, une VT à programmer en urgence : écrivez, on répond dans la journée.</p>
+  <h2>Coordination des visites</h2>
+  <p>Amir — planification, réseau de techniciens, rapports.</p>
+  <h2>Dossiers CEE et réactivation</h2>
+  <p>Bratan — fiches, obligés, montage des dossiers, rappels clients.</p>
+  <h2>Un souci sur la plateforme</h2>
+  <p>Signalez-le en précisant la VT concernée et ce que vous attendiez. Les remarques des utilisateurs orientent directement les évolutions.</p>
+  <div class="card" style="margin-top:20px;max-width:62ch"><b class="sm">Sauvegarde</b><p class="sm" style="margin:6px 0 0">La direction peut exporter l'intégralité de la base depuis l'onglet Visites, bouton « Sauvegarde ». À faire une fois par mois.</p></div>
+  </div>`;
+}
+
+/* ---------- visites ---------- */
+const today=new Date().toISOString().slice(0,10);
+const lundi=(()=>{const d=new Date();const j=(d.getDay()+6)%7;d.setDate(d.getDate()-j);return d.toISOString().slice(0,10);})();
+const mois1=new Date().toISOString().slice(0,8)+'01';
+const periodeOk=v=>{switch(filtrePeriode){
+  case 'semaine':return v.date>=lundi&&v.date<=today;
+  case 'mois':return v.date>=mois1&&v.date<=today;
+  case 'avenir':return estPrevue(v);
+  case 'aujourdhui':return v.date===today;
+  case 'realisees':return estFaite(v);
+  case 'enroute':return vtEtatN(v)==='Technicien envoyé';
+  case 'reportees':return vtEtatN(v)==='Reportée';
+  case 'annulees':return vtEtatN(v)==='Annulée';
+  case 'avecrapport':return v.files&&v.files.length>0;
+  case 'sansrapport':return rapportManquant(v);
+  case 'synthese':return !!v.audit;
+  case 'optout':return !!v.optout;
+  case 'rappels':return v.rappel&&v.rappel<=today&&!v.optout;
+  default:return true;}};
+const PERIODE_LABEL={semaine:'VT de cette semaine',mois:'VT de ce mois',avenir:'VT à venir',aujourdhui:'VT aujourd\'hui',realisees:'VT effectuées',enroute:'Technicien envoyé',reportees:'VT reportées',annulees:'VT annulées',avecrapport:'Avec rapport',sansrapport:'Rapport manquant',synthese:'Synthèse lue',optout:'Ne pas recontacter',rappels:'Rappels échus'};
+function vVisites(){
+  const ql=q.trim().toLowerCase();
+  const list=visites.filter(v=>{
+    if(filtreFiche&&v.fiche!==filtreFiche)return false;
+    if(filtreType&&v.type!==filtreType)return false;
+    if(filtreStatut&&(v.statut||'En attente')!==filtreStatut)return false;
+    if(filtreEtat&&vtEtatN(v)!==filtreEtat)return false;
+    if(filtreTech&&(v.technicien||'')!==filtreTech)return false;
+    if(!periodeOk(v))return false;
+    if(ql){const hay=[nomClient(v),v.raison_sociale,v.siret,v.tel,v.email,v.ville,v.cp,v.dept,v.secteur,v.naf,v.fiche,ficheTitre(v.fiche),v.donneur_ordre,v.technicien].join(' ').toLowerCase();if(!hay.includes(ql))return false;}
+    return true;
+  });
+  const keyF={client:v=>nomClient(v).toLowerCase(),lieu:v=>(v.dept||'')+(v.ville||''),fiche:v=>v.fiche||'~',date:v=>v.date||'',etat:v=>vtEtatN(v),statut:v=>v.statut||'En attente'}[sortKey]||(v=>v.date||'');
+  list.sort((a,b)=>{const x=keyF(a),y=keyF(b);return (x<y?-1:x>y?1:0)*sortDir||((b.createdAt||0)-(a.createdAt||0));});
+  const page=list.slice(0,shown);
+  const fichesUsed=[...new Set(visites.map(v=>v.fiche).filter(Boolean))].sort();
+  const techsUsed=[...new Set(visites.map(v=>v.technicien).filter(Boolean))].sort();
+  const th=(k,l)=>`<th data-sort="${k}" class="${sortKey===k?'s':''}">${l}${sortKey===k?(sortDir>0?' ↑':' ↓'):''}</th>`;
+  const allSel=page.length&&page.every(v=>sel.has(v.id));
+  const mobile=window.matchMedia('(max-width:700px)').matches;
+  const rows=mobile?`<div class="lst">${page.map(v=>`<div class="mc ${sel.has(v.id)?'sel':''}" data-open="${v.id}">
+      <span class="ck" style="padding-top:2px"><input type="checkbox" data-ck="${v.id}" ${sel.has(v.id)?'checked':''} style="width:auto"></span>
+      <div style="flex:1;min-width:0"><div class="who2">${esc(nomClient(v))}</div>
+        <div class="sub">${esc([v.ville,v.dept?'dépt '+v.dept:'',v.type||'B2B'].filter(Boolean).join(' · '))} · ${fmtD(v.date)}</div>
+        <div class="fi">${v.fiche?`<span class="tag">${esc(v.fiche)}</span>`:''}<span class="tag ${vtEtat(v).c}">${esc(vtEtat(v).l)}</span><span class="tag ${v.statut==='Dossier signé'||v.statut==='RDV pris'?'v':''}">${esc(v.statut||'En attente')}</span>${rapportManquant(v)?'<span class="tag r">rapport manquant</span>':''}${v.audit?'<span class="tag a">synthèse</span>':''}${v.optout?'<span class="tag r">ne pas recontacter</span>':''}</div></div>
+    </div>`).join('')}${list.length>shown?`<div class="more"><button class="btn g sm" id="bMore">Afficher ${Math.min(pageSize,list.length-shown)} de plus</button></div>`:''}</div>`:'';
+  return `
+  <div class="card" style="margin-bottom:14px">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+      <div style="flex:2;min-width:200px"><label class="f">Rechercher</label><input type="text" id="q" value="${esc(q)}" placeholder="Client, SIRET, ville, département, fiche…"></div>
+      <div style="flex:1;min-width:160px"><label class="f">Fiche CEE d'origine</label><select id="ff"><option value="">Toutes</option>${fichesUsed.map(c=>`<option value="${c}" ${filtreFiche===c?'selected':''}>${c} — ${esc(ficheTitre(c)).slice(0,40)}</option>`).join('')}</select></div>
+      <div style="min-width:150px"><label class="f">Technicien</label><select id="ft"><option value="">Tous</option>${techsUsed.map(t=>`<option ${filtreTech===t?'selected':''}>${esc(t)}</option>`).join('')}</select></div>
+      <div style="min-width:150px"><label class="f">État de la VT</label><select id="fe"><option value="">Tous</option>${ETATS.map(s=>`<option ${filtreEtat===s?'selected':''}>${s}</option>`).join('')}</select></div>
+      <div style="min-width:140px"><label class="f">Suivi commercial</label><select id="fs"><option value="">Tous</option>${STATUTS.map(s=>`<option ${filtreStatut===s?'selected':''}>${s}</option>`).join('')}</select></div>
+      <div><label class="f">Type</label><div class="seg"><button data-t="" class="${filtreType===''?'on':''}">Tous</button><button data-t="B2B" class="${filtreType==='B2B'?'on':''}">B2B</button><button data-t="B2C" class="${filtreType==='B2C'?'on':''}">B2C</button></div></div>
+      <button class="btn g sm" id="bImp">Importer un fichier</button>
+      <button class="btn g sm" id="bExp">Exporter${list.length!==visites.length?' la sélection filtrée':''}</button>
+      ${user.role==='direction'?'<button class="btn g sm" id="bBkp">Sauvegarde</button>':''}
+      ${user.role==='direction'?(visites.some(v=>v.demo)?'<button class="btn g sm" id="bDemoOff">Retirer la démo</button>':'<button class="btn g sm" id="bDemoOn">Charger la démo</button>'):''}
+    </div>
+    ${(filtrePeriode||filtreTech||filtreEtat||filtreFiche||filtreStatut||q)?`<div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+      ${filtrePeriode?`<span class="chip on">${PERIODE_LABEL[filtrePeriode]} <span data-per="" style="margin-left:4px;cursor:pointer">×</span></span>`:''}
+      ${filtreTech?`<span class="chip on">Technicien : ${esc(filtreTech)} <span data-tech="" style="margin-left:4px;cursor:pointer">×</span></span>`:''}
+      <button class="btn g sm" id="fclear">Tout effacer</button></div>`:''}
+    <div id="impzone"></div>
+  </div>
+  ${sel.size?`<div class="bulk"><b>${sel.size}</b> sélectionnée${sel.size>1?'s':''}
+      ${user.role==='direction'?`<select id="bulkStat" style="width:auto;padding:5px 8px;background:#fff;color:var(--encre)"><option value="">Changer le statut…</option>${STATUTS.map(s=>`<option>${s}</option>`).join('')}</select>`:''}
+      <button class="btn g sm" id="bulkExp">Exporter la liste d'appel</button>
+      <button class="btn g sm" id="bulkClr" style="margin-left:auto">Tout désélectionner</button></div>`:''}
+  <div class="sm mut" style="margin:0 0 10px">${list.length} visite${list.length>1?'s':''}${list.length!==visites.length?' sur '+visites.length:''}</div>
+  ${list.length?(mobile?rows:`<div class="tw"><table>
+    <thead><tr><th class="ck"><input type="checkbox" id="ckAll" ${allSel?'checked':''} style="width:auto"></th>${th('client','Client')}${th('lieu','Lieu')}${th('fiche','Fiche CEE d\'origine')}${th('date','VT')}${th('etat','État VT')}${th('statut','Suivi')}<th>Rapport</th></tr></thead>
+    <tbody>${page.map(v=>`<tr data-open="${v.id}" class="${sel.has(v.id)?'sel':''}">
+      <td class="ck"><input type="checkbox" data-ck="${v.id}" ${sel.has(v.id)?'checked':''} style="width:auto"></td>
+      <td><div class="who2">${esc(nomClient(v))}${v.optout?' <span class="tag r">Ne pas recontacter</span>':''}</div><div class="sub">${v.type||'B2B'}${v.secteur?' · '+esc(v.secteur):''}${v.tel?' · '+esc(v.tel):''}</div></td>
+      <td>${esc(v.ville||'')}<div class="sub">${esc([v.cp,v.dept?'dépt '+v.dept:''].filter(Boolean).join(' · '))}</div></td>
+      <td>${v.fiche?`<b>${esc(v.fiche)}</b><div class="sub" style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(ficheTitre(v.fiche))}</div>`:'<span class="mut">—</span>'}</td>
+      <td>${fmtD(v.date)}${v.donneur_ordre?'<div class="sub">'+esc(v.donneur_ordre)+'</div>':''}</td>
+      <td><span class="tag ${vtEtat(v).c}">${esc(vtEtat(v).l)}</span></td>
+      <td><span class="tag ${v.statut==='Dossier signé'||v.statut==='RDV pris'?'v':''}">${esc(v.statut||'En attente')}</span></td>
+      <td>${v.files&&v.files.length?'<span class="tag v">'+v.files.length+'</span>':(rapportManquant(v)?'<span class="tag r">manquant</span>':'<span class="mut">—</span>')}</td>
+    </tr>`).join('')}</tbody></table>
+    ${list.length>shown?`<div class="more"><button class="btn g sm" id="bMore">Afficher ${Math.min(pageSize,list.length-shown)} de plus (${list.length-shown} restantes)</button></div>`:''}</div>`)
+  :`<div class="empty"><b>${visites.length?'Aucune visite ne correspond':'Aucune visite enregistrée'}</b>${visites.length?'Modifiez la recherche ou les filtres.':'Créez la première avec « Nouvelle visite » ou importez un fichier Excel.'}</div>`}`;
+}
+window._listeCourante=()=>{const ql=q.trim().toLowerCase();return visites.filter(v=>(!filtreFiche||v.fiche===filtreFiche)&&(!filtreType||v.type===filtreType)&&(!filtreStatut||(v.statut||'En attente')===filtreStatut)&&(!filtreEtat||vtEtatN(v)===filtreEtat)&&(!filtreTech||(v.technicien||'')===filtreTech)&&periodeOk(v)&&(!ql||[nomClient(v),v.raison_sociale,v.siret,v.tel,v.email,v.ville,v.cp,v.dept,v.secteur,v.naf,v.fiche,ficheTitre(v.fiche),v.donneur_ordre,v.technicien].join(' ').toLowerCase().includes(ql)));};
+
+/* ---------- catalogue ---------- */
+function vCatalogue(){
+  const counts={};visites.forEach(v=>{if(v.fiche)counts[v.fiche]=(counts[v.fiche]||0)+1;});
+  const ql=catQ.trim().toLowerCase();
+  const list=FICHES.filter(f=>(!catSect||f[0].startsWith(catSect+'-'))&&(!ql||(f[0]+' '+f[1]).toLowerCase().includes(ql)));
+  return `
+  <div class="card" style="margin-bottom:14px">
+    <div class="chips"><span class="chip ${catSect===''?'on':''}" data-cs="">Toutes</span>
+      ${Object.keys(SECT_LABEL).map(s=>`<span class="chip ${catSect===s?'on':''}" data-cs="${s}">${SECT_LABEL[s]} <span class="xs">${FICHES.filter(f=>f[0].startsWith(s+'-')).length}</span></span>`).join('')}</div>
+    <input type="text" id="cq" value="${esc(catQ)}" placeholder="Code ou intitulé de la fiche…">
+    <div class="xs mut" style="margin-top:8px">194 fiches d'opérations standardisées — catalogue du 14/09/2026. Le compteur indique les visites enregistrées sur chaque fiche ; un clic filtre la base.</div>
+  </div>
+  <div class="cat">${list.map(f=>`<div class="crow" data-cf="${f[0]}"><b>${f[0]}</b><span>${esc(f[1])}</span>
+    ${f[2]==='dom'?'<span class="tag a" style="flex:0">DOM</span>':f[2]==='metropole'?'<span class="tag" style="flex:0">Métropole</span>':''}
+    <span class="n ${counts[f[0]]?'has':''}">${counts[f[0]]?counts[f[0]]+' visite'+(counts[f[0]]>1?'s':''):'—'}</span></div>`).join('')||'<div class="empty">Aucune fiche ne correspond.</div>'}</div>`;
+}
+
+/* ---------- tableau de bord ---------- */
+function vTableau(){
+  const n=visites.length; if(!n) return '<div class="empty"><b>Rien à afficher</b>Le tableau se remplit dès les premières VT.</div>';
+  const t=new Date().toISOString().slice(0,10);
+  const sem=visites.filter(v=>v.date>=lundi&&v.date<=t).length, mois=visites.filter(v=>v.date>=mois1&&v.date<=t).length;
+  const faites=visites.filter(estFaite).length, prevues=visites.filter(estPrevue).length;
+  const manquants=visites.filter(rapportManquant).length;
+  const incidents=visites.filter(v=>['Reportée','Annulée','Non concluante'].includes(vtEtatN(v))).length;
+  const st=s=>visites.filter(v=>(v.statut||'En attente')===s).length;
+  const rappels=visites.filter(v=>v.rappel&&v.rappel<=t&&!v.optout).length;
+  const signes=st('Dossier signé'), traites=visites.filter(v=>['Rappelé','RDV pris','Dossier signé','Refus'].includes(v.statut)).length;
+  const taux=traites?Math.round(signes/traites*100):0;
+  const j7=new Date(Date.now()+7*864e5).toISOString().slice(0,10);
+  const agenda=visites.filter(v=>v.date>=t&&v.date<=j7&&estPrevue(v)).sort((a,b)=>a.date.localeCompare(b.date));
+  const tile=(v,k,s,per,stat,cls)=>`<div class="tile2 ${cls||''}" data-per="${per||''}" ${stat?'data-stat="'+stat+'"':''}><div class="v">${v}</div><div><div class="k">${k}</div>${s?`<div class="s">${s}</div>`:''}</div></div>`;
+
+  const sems=[];for(let i=11;i>=0;i--){const d=new Date(lundi);d.setDate(d.getDate()-i*7);const a=d.toISOString().slice(0,10);const e=new Date(d);e.setDate(e.getDate()+6);const z=e.toISOString().slice(0,10);sems.push({n:visites.filter(v=>v.date>=a&&v.date<=z).length});}
+  const maxS=Math.max(1,...sems.map(s=>s.n)), moy=Math.round(sems.reduce((s,x)=>s+x.n,0)/12*10)/10;
+
+  const tech={};visites.filter(estFaite).forEach(v=>{if(!v.technicien)return;const o=tech[v.technicien]=tech[v.technicien]||{n:0,r:0};o.n++;if(v.files&&v.files.length)o.r++;});
+  const techs=Object.entries(tech).sort((a,b)=>b[1].n-a[1].n);
+
+  const cnt=f=>{const o={};visites.forEach(v=>{const x=f(v);if(x)o[x]=(o[x]||0)+1;});return Object.entries(o).sort((a,b)=>b[1]-a[1]);};
+  const REP={fiche:[()=>cnt(v=>v.fiche?v.fiche+' · '+ficheTitre(v.fiche):''),'Fiche CEE'],dept:[()=>cnt(v=>v.dept?'Dépt '+v.dept:''),'Département'],don:[()=>cnt(v=>v.donneur_ordre),'Donneur d\'ordre']};
+  const rows=REP[repVue][0]();
+
+  return `
+  ${manquants||rappels?`<div style="margin-bottom:16px">
+    ${manquants?`<div class="alert" data-per="sansrapport"><b class="sm">${manquants} VT effectuée${manquants>1?'s':''} sans rapport joint</b><span class="d">à régulariser</span></div>`:''}
+    ${rappels?`<div class="alert" style="background:var(--ambre-pale);border-color:var(--ambre-trait)" data-per="rappels"><b class="sm">${rappels} rappel${rappels>1?'s':''} échu${rappels>1?'s':''}</b><span class="d" style="color:var(--ambre)">à traiter</span></div>`:''}
+  </div>`:''}
+
+  <div class="secth"><h2>Activité VT</h2><span>${n} visites au total</span></div>
+  <div class="tiles">
+    ${tile(sem,'VT cette semaine','moyenne '+moy+'/semaine','semaine',null,'dark')}
+    ${tile(mois,'VT ce mois','','mois')}
+    ${tile(faites,'VT effectuées','','realisees')}
+    ${tile(prevues,'VT à venir','','avenir')}
+    ${tile(manquants,'Rapport manquant','','sansrapport',null,manquants?'al':'')}
+    ${tile(incidents,'Reportées ou annulées','','reportees',null,incidents?'hi':'')}
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div class="secth" style="margin:0 0 4px"><h2>Cadence</h2><span>12 dernières semaines</span></div>
+    <div class="spark">${sems.map((s,i)=>`<i class="${i===11?'last':''}" style="height:${Math.max(3,Math.round(s.n/maxS*100))}%" title="${s.n} VT"></i>`).join('')}</div>
+  </div>
+
+  <div class="secth"><h2>Exploitation de la base</h2><span>ce que les VT rapportent ensuite</span></div>
+  <div class="tiles">
+    ${tile(st('À rappeler'),'À retravailler','','',"À rappeler",st('À rappeler')?'hi':'')}
+    ${tile(rappels,'Rappels échus','','rappels',null,rappels?'al':'')}
+    ${tile(st('RDV pris'),'RDV pris','','',"RDV pris")}
+    ${tile(signes,'Dossiers signés','','',"Dossier signé",signes?'ok':'')}
+    ${tile(taux+'%','Transformation','sur '+traites+' dossiers traités','')}
+    ${tile(visites.filter(v=>v.audit).length,'Synthèses lues','','synthese')}
+  </div>
+
+  ${agenda.length?`<div class="card" style="margin-bottom:14px"><h2 style="margin-bottom:8px">VT des 7 prochains jours</h2>${agenda.map(v=>`<div style="display:flex;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid #F1F4F3;cursor:pointer" data-open="${v.id}"><span class="tag ${v.date===t?'v':'a'}" style="min-width:86px;text-align:center">${v.date===t?'Aujourd\'hui':fmtD(v.date)}</span><b class="sm">${esc(nomClient(v))}</b><span class="sm mut">${esc([v.ville,v.fiche].filter(Boolean).join(' · '))}</span>${v.technicien?'<span class="xs mut" style="margin-left:auto">'+esc(v.technicien)+'</span>':''}</div>`).join('')}</div>`:''}
+
+  ${techs.length?`<div class="card" style="margin-bottom:14px"><div class="secth" style="margin:0 0 6px"><h2>Techniciens</h2><span>cliquez pour voir ses VT</span></div>
+    ${techs.map(([k,o],i)=>`<div class="rank" data-tech="${esc(k)}" style="cursor:pointer"><span class="p">${i+1}</span><b class="sm" style="flex:1">${esc(k)}</b><span class="sm mut">${o.n} VT</span><span class="tag ${o.r===o.n?'v':'r'}" style="min-width:92px;text-align:center">${o.r}/${o.n} rapports</span></div>`).join('')}</div>`:''}
+
+  <div class="card">
+    <div class="secth" style="margin:0 0 10px"><h2>Répartition</h2>
+      <div class="seg" style="margin-left:auto">${Object.entries(REP).map(([k,x])=>`<button data-rep="${k}" class="${repVue===k?'on':''}">${x[1]}</button>`).join('')}</div></div>
+    ${rows.length?rows.slice(0,8).map(([k,c])=>`<div style="display:flex;align-items:center;gap:12px;padding:4px 0"><div class="sm" style="min-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(k)}</div><div class="bar" style="flex:1"><i style="width:${Math.round(c/rows[0][1]*100)}%"></i></div><div class="sm" style="min-width:30px;text-align:right">${c}</div></div>`).join(''):'<div class="sm mut">Aucune donnée.</div>'}
+  </div>`;
+}
+
+/* ---------- sélecteur de fiche CEE ---------- */
+function fichePicker(container,current,onPick){
+  let val=current||'',sect='',hl=0;
+  const draw=()=>{
+    if(val){container.innerHTML=`<div class="fsel"><b>${esc(val)}</b><span class="sm">${esc(ficheTitre(val))}</span><button class="x" type="button" style="margin-left:auto">×</button></div>`;
+      container.querySelector('.x').onclick=()=>{val='';onPick('');draw();setTimeout(()=>{const i=container.querySelector('input');if(i)i.focus();},0);};return;}
+    container.innerHTML=`<div class="chips"><span class="chip ${sect===''?'on':''}" data-s="">Toutes</span>${Object.keys(SECT_LABEL).map(s=>`<span class="chip ${sect===s?'on':''}" data-s="${s}">${SECT_LABEL[s]}</span>`).join('')}</div>
+      <div class="fpick"><input type="text" placeholder="Code (AGRI-EQ-110) ou mot de l'intitulé…" autocomplete="off"><div class="fdrop" style="display:none"></div></div>`;
+    const inp=container.querySelector('input'),dd=container.querySelector('.fdrop');
+    container.querySelectorAll('[data-s]').forEach(c=>c.onclick=()=>{sect=c.dataset.s;draw();container.querySelector('input').focus();});
+    const list=t=>{t=t.trim().toLowerCase();const res=FICHES.filter(f=>(!sect||f[0].startsWith(sect+'-'))&&(!t||(f[0]+' '+f[1]).toLowerCase().includes(t))).slice(0,60);hl=0;
+      dd.innerHTML=res.map((f,i)=>`<div class="fopt ${i===0?'hl':''}" data-c="${f[0]}"><b>${f[0]}</b><span>${esc(f[1])}</span></div>`).join('')||'<div class="fopt"><span class="mut">Aucune fiche</span></div>';
+      dd.style.display='block';dd.querySelectorAll('[data-c]').forEach(o=>o.onmousedown=e=>{e.preventDefault();val=o.dataset.c;onPick(val);draw();});};
+    inp.oninput=()=>list(inp.value);inp.onfocus=()=>list(inp.value);inp.onblur=()=>setTimeout(()=>dd.style.display='none',150);
+    inp.onkeydown=e=>{const opts=[...dd.querySelectorAll('[data-c]')];if(!opts.length)return;
+      if(e.key==='ArrowDown'){e.preventDefault();hl=Math.min(opts.length-1,hl+1);}else if(e.key==='ArrowUp'){e.preventDefault();hl=Math.max(0,hl-1);}
+      else if(e.key==='Enter'){e.preventDefault();val=opts[hl].dataset.c;onPick(val);draw();return;}else return;
+      opts.forEach((o,i)=>o.classList.toggle('hl',i===hl));opts[hl].scrollIntoView({block:'nearest'});};
+  };
+  draw();
+}
+
+/* ---------- SIRET → pré-remplissage (API Recherche d'entreprises, data.gouv, sans clé) ---------- */
+async function chercherSiret(raw){
+  const s=String(raw||'').replace(/\D/g,'');
+  if(s.length!==9&&s.length!==14) throw new Error('Un SIRET fait 14 chiffres (ou 9 pour un SIREN).');
+  const r=await fetch('https://recherche-entreprises.api.gouv.fr/search?q='+s+'&page=1&per_page=1');
+  if(!r.ok) throw new Error('Service indisponible ('+r.status+').');
+  const j=await r.json(); const e=(j.results||[])[0];
+  if(!e) throw new Error('Aucune entreprise trouvée pour ce numéro.');
+  const etab=(e.matching_etablissements||[]).find(x=>x.siret===s)||e.siege||{};
+  const dir=(e.dirigeants||[]).find(d=>d.type_personne==='PP'||d.prenoms)||(e.dirigeants||[])[0]||{};
+  return { raison:e.nom_complet||e.nom_raison_sociale||'', siret:etab.siret||(s.length===14?s:''), adresse:etab.adresse||'', cp:etab.code_postal||'', ville:etab.libelle_commune||'',
+           naf:etab.activite_principale||e.activite_principale||'', prenom:(dir.prenoms||'').split(/[ ,]/)[0]||'', nom:dir.nom||'', qualite:dir.qualite||'', nature:e.nature_juridique||'' };
+}
+
+
+/* ---------- lecture du rapport par l'IA ---------- */
+async function analyserRapport(v){
+  const docs=[];
+  for(const f of (v.files||[])){
+    const d=await Store.get(fk(f.id)); if(!d) continue;
+    const t=(d.type||'').toLowerCase();
+    if(t==='application/pdf') docs.push({type:'document',source:{type:'base64',media_type:'application/pdf',data:d.b64}});
+    else if(/^image\/(jpeg|png|webp|gif)$/.test(t)) docs.push({type:'image',source:{type:'base64',media_type:t,data:d.b64}});
+  }
+  if(!docs.length) throw new Error('Aucun PDF ni photo exploitable dans les fichiers joints.');
+  const consigne=`Tu lis le rapport d'une visite technique réalisée chez un client dans le cadre des Certificats d'Économies d'Énergie (fiche ${v.fiche||'non précisée'}${ficheTitre(v.fiche)?' — '+ficheTitre(v.fiche):''}). Client : ${nomClient(v)}${v.secteur?', '+v.secteur:''}.
+Réponds UNIQUEMENT par un objet JSON, sans texte autour ni balises, avec ces clés :
+"resume": 3 à 5 phrases en français qui décrivent ce que le technicien a constaté chez ce client (bâtiment, activité, équipements, état, besoins) ;
+"chauffage": énergie et système de chauffage (ex. "fioul, chaudière 2004") ou "" ;
+"surface": surfaces relevées avec leur nature (ex. "maison 140 m², toiture 90 m²") ou "" ;
+"batiment": type et caractéristiques du bâtiment (année, toiture, isolation) ou "" ;
+"equipements": équipements comptés ou relevés (ex. "62 luminaires fluorescents, 3 splits") ou "" ;
+"points": tableau de 2 à 6 courtes phrases : mesures importantes, contraintes, éléments utiles pour proposer d'autres opérations plus tard ;
+"conclusion": l'avis ou la recommandation du technicien en 1 à 2 phrases, ou "".
+Si une information n'est pas dans le rapport, laisse la chaîne vide. N'invente rien.`;
+  const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:[...docs,{type:'text',text:consigne}]}]})});
+  if(!r.ok) throw new Error('Lecture indisponible ('+r.status+').');
+  const j=await r.json();
+  const txt=(j.content||[]).map(c=>c.text||'').join('\n').replace(/```json|```/g,'').trim();
+  let o; try{o=JSON.parse(txt.slice(txt.indexOf('{'),txt.lastIndexOf('}')+1));}catch(e){throw new Error('Réponse illisible, réessayez.');}
+  return {resume:o.resume||'',chauffage:o.chauffage||'',surface:o.surface||'',batiment:o.batiment||'',equipements:o.equipements||'',points:Array.isArray(o.points)?o.points:[],conclusion:o.conclusion||'',date:new Date().toISOString().slice(0,10),fichiers:(v.files||[]).length};
+}
+function auditHTML(a){
+  if(!a) return '';
+  const kv=[['Chauffage',a.chauffage],['Surfaces',a.surface],['Bâtiment',a.batiment],['Équipements',a.equipements]].filter(x=>x[1]);
+  return `<div class="audit"><div class="sm" style="white-space:pre-wrap;line-height:1.6">${esc(a.resume)}</div>
+    ${kv.length?`<dl class="kv">${kv.map(([k,x])=>`<dt>${k}</dt><dd>${esc(x)}</dd>`).join('')}</dl>`:''}
+    ${a.points&&a.points.length?`<div class="xs mut" style="margin-top:10px">Points relevés</div><ul class="sm" style="margin:2px 0 0;padding-left:18px">${a.points.map(p=>`<li>${esc(p)}</li>`).join('')}</ul>`:''}
+    ${a.conclusion?`<div class="concl"><div class="xs mut">Conclusion du technicien</div>${esc(a.conclusion)}</div>`:''}
+    <div class="xs mut" style="margin-top:8px">Lecture du rapport le ${fmtD(a.date)} — à vérifier avant usage.</div></div>`;
+}
+
+/* ---------- formulaire de visite ---------- */
+function formVisite(id){
+  const v=id?visites.find(x=>x.id===id):{type:'B2B',files:[],date:new Date().toISOString().slice(0,10)};
+  let type=v.type||'B2B',fiche=v.fiche||'',pending=[];
+  const m=document.getElementById('modal');
+  m.innerHTML=`<div class="ovl" id="ovl"><div class="pane" onclick="event.stopPropagation()">
+    <header><h2>${id?'Modifier la visite':'Nouvelle visite'}</h2><button class="x" id="cx" style="margin-left:auto">×</button></header>
+
+    <div class="stepn"><i>1</i><h3>Client</h3></div>
+    <div class="field"><div class="seg" id="segT"><button type="button" data-t="B2B">Professionnel (B2B)</button><button type="button" data-t="B2C">Particulier (B2C)</button></div></div>
+    <div id="b2bOnly">
+      <div class="field"><label class="f">SIRET — le reste se remplit tout seul</label>
+        <div class="siretrow"><input type="text" id="i_siret" value="${esc(v.siret||'')}" inputmode="numeric" placeholder="14 chiffres"><button class="btn g" type="button" id="bSiret">Rechercher</button></div>
+        <div class="siretmsg" id="siretmsg"></div></div>
+      <div class="cols">
+        <div class="field"><label class="f">Raison sociale</label><input type="text" id="i_raison" value="${esc(v.raison_sociale||'')}"></div>
+        <div class="field"><label class="f">Code NAF</label><input type="text" id="i_naf" value="${esc(v.naf||'')}" placeholder="01.13Z"></div>
+      </div>
+    </div>
+    <div class="cols"><div class="field"><label class="f">Prénom</label><input type="text" id="i_prenom" value="${esc(v.prenom||'')}"></div><div class="field"><label class="f">Nom</label><input type="text" id="i_nom" value="${esc(v.nom||'')}"></div></div>
+    <div class="cols"><div class="field"><label class="f">Téléphone</label><input type="tel" id="i_tel" value="${esc(v.tel||'')}"></div><div class="field"><label class="f">E-mail</label><input type="email" id="i_email" value="${esc(v.email||'')}"></div></div>
+    <div class="field"><label class="f">Adresse</label><input type="text" id="i_adresse" value="${esc(v.adresse||'')}"></div>
+    <div class="cols3"><div class="field"><label class="f">Code postal</label><input type="text" id="i_cp" value="${esc(v.cp||'')}" inputmode="numeric"></div><div class="field"><label class="f">Ville</label><input type="text" id="i_ville" value="${esc(v.ville||'')}"></div><div class="field"><label class="f">Département</label><input type="text" id="i_dept" value="${esc(v.dept||'')}" placeholder="auto"></div></div>
+    <div class="field"><label class="f">Secteur d'activité</label><input type="text" id="i_secteur" value="${esc(v.secteur||'')}" placeholder="Exploitation agricole, hôtel, garage, copropriété…"></div>
+
+    <div class="stepn"><i>2</i><h3>Visite technique</h3></div>
+    <div class="field"><label class="f">Fiche CEE pour laquelle la visite a été réalisée</label><div id="fp"></div></div>
+    <div class="cols3"><div class="field"><label class="f">État de la VT</label><select id="i_etat">${ETATS.map(s=>`<option ${(v.etat||etatAuto(v))===s?'selected':''}>${s}</option>`).join('')}</select></div>
+    <div class="field"><label class="f">Date de la VT</label><input type="date" id="i_date" value="${esc(v.date||'')}"></div><div class="field"><label class="f">Technicien</label><input type="text" id="i_tech" value="${esc(v.technicien||'')}"></div><div class="field"><label class="f">Donneur d'ordre</label><input type="text" id="i_do" value="${esc(v.donneur_ordre||'')}" placeholder="Installateur"></div></div>
+    <div class="field"><label class="f">Notes</label><textarea id="i_notes" rows="3" placeholder="Relevés, métrages, observations…">${esc(v.notes||'')}</textarea></div>
+
+    <div class="stepn"><i>3</i><h3>Rapport d'audit</h3></div>
+    <div class="drop" id="drop">Déposer le rapport ici (PDF, photo, Excel — 4 Mo max par fichier)<br><span class="xs">ou toucher pour choisir</span></div>
+    <input type="file" id="fin" multiple accept=".pdf,.jpg,.jpeg,.png,.xlsx,.xls,.docx" style="display:none">
+    <div class="files" id="flist"></div>
+
+    <hr class="hr">
+    <label style="display:flex;gap:9px;align-items:flex-start;margin-bottom:16px"><input type="checkbox" id="i_opt" ${v.optout?'checked':''} style="width:auto;margin-top:3px"><span class="sm">Le client ne souhaite pas être recontacté</span></label>
+    <div style="display:flex;gap:10px"><button class="btn" id="bSave">Enregistrer la visite</button><button class="btn g" id="bCancel">Annuler</button></div>
+  </div></div>`;
+
+  const setType=t=>{type=t;m.querySelectorAll('#segT button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));document.getElementById('b2bOnly').style.display=t==='B2B'?'':'none';};
+  m.querySelectorAll('#segT button').forEach(b=>b.onclick=()=>setType(b.dataset.t));setType(type);
+  document.getElementById('i_cp').oninput=e=>{document.getElementById('i_dept').value=deptOf(e.target.value);};
+  fichePicker(document.getElementById('fp'),fiche,c=>{fiche=c;});
+
+  const msg=document.getElementById('siretmsg');
+  const runSiret=async()=>{
+    msg.className='siretmsg';msg.textContent='Recherche…';
+    try{const d=await chercherSiret(document.getElementById('i_siret').value);
+      const put=(i,val)=>{const el=document.getElementById(i);if(val&&!el.value)el.value=val;};
+      const force=(i,val)=>{const el=document.getElementById(i);if(val)el.value=val;};
+      force('i_raison',d.raison);force('i_siret',d.siret||document.getElementById('i_siret').value);force('i_naf',d.naf);
+      put('i_prenom',d.prenom);put('i_nom',d.nom);force('i_adresse',d.adresse);force('i_cp',d.cp);force('i_ville',d.ville);force('i_dept',deptOf(d.cp));
+      msg.className='siretmsg ok';msg.textContent='Trouvé : '+d.raison+(d.nom?' — '+(d.qualite||'dirigeant')+' : '+[d.prenom,d.nom].filter(Boolean).join(' '):'')+'. Vérifiez et complétez.';
+    }catch(e){msg.className='siretmsg ko';msg.textContent=e.message||'Recherche impossible.';}
+  };
+  document.getElementById('bSiret').onclick=runSiret;
+  document.getElementById('i_siret').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();runSiret();}};
+  document.getElementById('i_siret').oninput=e=>{if(e.target.value.replace(/\D/g,'').length===14)runSiret();};
+
+  const files=[...(v.files||[])];
+  const drawFiles=()=>{document.getElementById('flist').innerHTML=[...files.map(f=>`<div class="file"><span class="nm">${esc(f.name)}</span><span class="xs mut">${Math.round(f.size/1024)} Ko</span><button class="x" type="button" data-rm="${f.id}">×</button></div>`),...pending.map((p,i)=>`<div class="file"><span class="nm">${esc(p.file.name)}</span><span class="tag v">à enregistrer</span><button class="x" type="button" data-rp="${i}">×</button></div>`)].join('');
+    document.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{const i=files.findIndex(f=>f.id===b.dataset.rm);if(i>-1){Store.del(fk(files[i].id));files.splice(i,1);}drawFiles();});
+    document.querySelectorAll('[data-rp]').forEach(b=>b.onclick=()=>{pending.splice(+b.dataset.rp,1);drawFiles();});};
+  drawFiles();
+  const addFiles=fl=>{[...fl].forEach(f=>{if(f.size>4*1024*1024){toast(f.name+' dépasse 4 Mo');return;}pending.push({file:f});});drawFiles();};
+  const d=document.getElementById('drop');d.onclick=()=>document.getElementById('fin').click();document.getElementById('fin').onchange=e=>addFiles(e.target.files);
+  d.ondragover=e=>{e.preventDefault();d.style.borderColor='var(--vert)';};d.ondragleave=()=>d.style.borderColor='';d.ondrop=e=>{e.preventDefault();d.style.borderColor='';addFiles(e.dataTransfer.files);};
+
+  document.getElementById('ovl').onclick=closeModal;document.getElementById('cx').onclick=closeModal;document.getElementById('bCancel').onclick=closeModal;
+  document.getElementById('bSave').onclick=async()=>{
+    const g=i=>document.getElementById(i).value.trim();
+    const o=id?v:{id:uid(),createdAt:Date.now(),saisi_par:user.nom,statut:'En attente'};
+    Object.assign(o,{type,raison_sociale:type==='B2B'?g('i_raison'):'',siret:type==='B2B'?g('i_siret').replace(/\s/g,''):'',naf:type==='B2B'?g('i_naf'):'',prenom:g('i_prenom'),nom:g('i_nom'),
+      tel:g('i_tel'),email:g('i_email'),adresse:g('i_adresse'),cp:g('i_cp'),ville:g('i_ville'),dept:g('i_dept')||deptOf(g('i_cp')),secteur:g('i_secteur'),fiche,date:g('i_date'),etat:document.getElementById('i_etat').value,technicien:g('i_tech'),donneur_ordre:g('i_do'),notes:g('i_notes'),
+      optout:document.getElementById('i_opt').checked,updatedAt:Date.now(),modifie_par:user.nom});
+    if(!o.nom&&!o.raison_sociale&&!o.tel){toast('Indiquez au moins un nom ou un téléphone');return;}
+    if(!id){const s=o.siret.replace(/\D/g,''),t=o.tel.replace(/\D/g,'');const dbl=visites.find(x=>(s&&x.siret&&x.siret.replace(/\D/g,'')===s)||(t&&x.tel&&x.tel.replace(/\D/g,'')===t));
+      if(dbl&&!confirm('Un client identique existe déjà ('+nomClient(dbl)+', visite du '+fmtD(dbl.date)+'). Enregistrer quand même comme nouvelle visite ?'))return;}
+    for(const p of pending){const b64=await new Promise(res=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.readAsDataURL(p.file);});const fid=uid();
+      try{await Store.set(fk(fid),{b64,name:p.file.name,type:p.file.type});files.push({id:fid,name:p.file.name,size:p.file.size,type:p.file.type});}catch(e){toast(p.file.name+' : enregistrement impossible');}}
+    o.files=files;if(!id)visites.push(o);
+    await save();closeModal();view='visites';render();toast(id?'Visite mise à jour':'Visite enregistrée');
+    if(pending.length){toast('Lecture du rapport en cours…');try{o.audit=await analyserRapport(o);await save();toast('Synthèse du rapport ajoutée à la fiche');}catch(e){}}
+  };
+}
+
+
+/* ---------- état de la VT et pistes de rappel ---------- */
+function etatAuto(v){const t=new Date().toISOString().slice(0,10);if(v.files&&v.files.length)return 'Rapport reçu';if(!v.date)return 'Demandée';if(v.date>t)return 'Planifiée';if(v.date===t)return 'Technicien envoyé';return 'Effectuée';}
+const vtEtatN=v=>v.etat||etatAuto(v);
+const vtEtat=v=>({l:vtEtatN(v),c:ETAT_CLS[vtEtatN(v)]||''});
+const estFaite=v=>['Effectuée','Rapport reçu','Non concluante'].includes(vtEtatN(v));
+const estPrevue=v=>['Demandée','Planifiée','Technicien envoyé','Reportée'].includes(vtEtatN(v));
+const rapportManquant=v=>vtEtatN(v)==='Effectuée'&&!(v.files&&v.files.length);
+const joursDepuis=d=>d?Math.floor((Date.now()-new Date(d).getTime())/864e5):0;
+function pistes(v){
+  const a=v.audit||{};const txt=[a.resume,a.chauffage,a.surface,a.batiment,a.equipements,(a.points||[]).join(' '),a.conclusion,v.notes,v.secteur].join(' ').toLowerCase();
+  const b2c=v.type==='B2C', agri=/^AGRI/.test(v.fiche||'')||/agric|forest|scierie|serre|maraîch|horti|élevage|elevage/.test(txt), dom=/^97/.test(v.cp||'');
+  const out=[];const add=(code,why)=>{if(code!==v.fiche&&FMAP[code]&&!out.find(o=>o.code===code))out.push({code,why});};
+  const tra=!b2c&&/flotte|tracteur routier|semi-remorque|transport routier|poids lourds et|^TRA/.test(txt+' '+(v.fiche||''));
+  const ind=!b2c&&!agri&&!tra&&/^IND|usine|industrie|minoterie|métallerie|production/.test((v.fiche||'')+' '+txt);
+  const comblesFaits=/isolés? (en )?20[12]\d|30 cm/.test(txt);
+  const tert=!b2c&&!agri&&!ind&&!tra;
+  if(/fioul|propane|gaz naturel|gaz —|chaudi.*(fioul|gaz)|fin de vie/.test(txt)&&!/chaudière (à )?(déchets de )?bois|bois déchiqueté|biomasse/.test(txt)){if(b2c){add('BAR-TH-171','Chaudière fioul ou gaz : pompe à chaleur air/eau');add('BAR-TH-113','Chaudière en fin de vie : biomasse granulés');}else if(agri)add('AGRI-TH-108','Chaufferie fossile : pompe à chaleur agricole');}
+  if(b2c&&/comble|rampant/.test(txt)&&!comblesFaits)add(dom?'BAR-EN-106':'BAR-EN-101','Combles ou toiture insuffisamment isolés');
+  if(b2c&&/murs? (parpaing |brique )?non isol/.test(txt))add(dom?'BAR-EN-107':'BAR-EN-102','Murs non isolés');
+  if(tert&&/comble|toiture.*non isol/.test(txt))add(dom?'BAT-EN-106':'BAT-EN-101','Toiture du bâtiment non isolée');
+  if(tert&&/toiture terrasse/.test(txt))add('BAT-EN-107','Toiture-terrasse : isolation');
+  if(/split|climatis/.test(txt)){b2c?add('BAR-TH-129','Splits anciens : remplacement air/air'):(tert&&add('BAT-TH-122','Climatisation sans programmation'));}
+  if(b2c&&/chauffe-eau|ecs|eau chaude/.test(txt)&&(dom||/sud|tôle|tole/.test(txt)))add('BAR-TH-101','Chauffe-eau électrique et toiture exposée : solaire');
+  if(agri&&/séch|sech|scierie|bois/.test(txt))add('AGRI-EQ-110','Bâtiment de séchage et toiture exposée : solaire hybride');
+  if(/serre/.test(txt)){add('AGRI-EQ-102','Serre : double écran thermique');add('AGRI-TH-119','Serre : hygrométrie élevée, déshumidification');}
+  if(agri&&/groupe froid/.test(txt))add('AGRI-TH-104','Groupe froid : récupération de chaleur');
+  if(ind&&/moteur|pompe|ventilateur|broyeur|élévateur/.test(txt))add('IND-UT-102','Moteurs sans variation de vitesse');
+  if(ind&&/compresseur/.test(txt))add('IND-UT-103','Compresseurs d\'air : récupération de chaleur');
+  if(ind&&/fuites|air comprimé/.test(txt))add('IND-UT-124','Air comprimé : séquenceur de centrale');
+  if((ind||tra)&&/aérotherme/.test(txt))add('IND-BA-110','Grand volume chauffé par aérothermes : déstratification');
+  if(tert&&/gtb|régulation|cta|centralis/.test(txt))add('BAT-TH-116','Pas de gestion technique centralisée');
+  if(b2c&&/vmc|ventilation naturelle|condensation|aucune ventilation/.test(txt))add('BAR-TH-127','Absence de ventilation mécanique');
+  if(/éclairage public|candélabre|point(s)? lumineux|sodium/.test(txt))add('RES-EC-104','Éclairage extérieur à rénover');
+  if(tra){add('TRA-SE-104','Flotte de véhicules : station de gonflage');add('TRA-EQ-115','Renouvellement de flotte : véhicules optimisés');}
+  return out.slice(0,4);
+}
+
+/* ---------- détail ---------- */
+function detail(id){
+  const v=visites.find(x=>x.id===id);if(!v)return;
+  const m=document.getElementById('modal');const et=vtEtat(v);const ps=pistes(v);const a=v.audit;
+  const sec=(t,body,extra)=>`<section class="sec"><div class="sech"><h3>${t}</h3>${extra||''}</div>${body}</section>`;
+  const kv=rows=>`<dl class="kv">${rows.filter(r=>r[1]).map(([k,x])=>`<dt>${k}</dt><dd>${x}</dd>`).join('')}</dl>`;
+  m.innerHTML=`<div class="ovl" id="ovl"><div class="pane" onclick="event.stopPropagation()">
+    <header>
+      <div style="min-width:0">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px"><span class="tag ${et.c}">${et.l}${v.date?' · '+fmtD(v.date):''}</span><span class="tag">${v.type||'B2B'}</span>${v.optout?'<span class="tag r">Ne pas recontacter</span>':''}</div>
+        <h2>${esc(nomClient(v))}</h2>
+        <div class="sm mut">${esc([v.secteur,[v.cp,v.ville].filter(Boolean).join(' '),v.dept?'dépt '+v.dept:''].filter(Boolean).join(' · '))}</div>
+      </div>
+      <button class="x" id="cx" style="margin-left:auto">×</button>
+    </header>
+
+    ${sec('Client',kv([
+      ['Interlocuteur',esc([v.prenom,v.nom].filter(Boolean).join(' '))],
+      ['Téléphone',v.tel?`<a href="tel:${esc(v.tel)}">${esc(v.tel)}</a>`:''],
+      ['E-mail',v.email?`<a href="mailto:${esc(v.email)}">${esc(v.email)}</a>`:''],
+      ['Adresse',esc([v.adresse,[v.cp,v.ville].filter(Boolean).join(' ')].filter(Boolean).join(', '))],
+      ['SIRET',esc(v.siret)],['Code NAF',esc(v.naf)],['Secteur',esc(v.secteur)]]))}
+
+    ${sec('Visite technique',`${v.fiche?`<div class="fsel" style="margin-bottom:10px"><b>${esc(v.fiche)}</b><span class="sm">${esc(ficheTitre(v.fiche))}</span></div>`:'<div class="sm mut" style="margin-bottom:10px">Fiche CEE d\'origine non renseignée.</div>'}
+      <div class="cols" style="margin-bottom:10px">
+        <div><label class="f">État de la VT</label><select id="detat">${ETATS.map(s=>`<option ${vtEtatN(v)===s?'selected':''}>${s}</option>`).join('')}</select></div>
+        <div><label class="f">Date de la VT</label><input type="date" id="ddate" value="${esc(v.date||'')}"></div>
+      </div>
+      ${rapportManquant(v)?'<div class="alert" style="margin-bottom:10px"><b class="sm">Rapport non joint</b><span class="d">VT effectuée il y a '+joursDepuis(v.date)+' j</span></div>':''}
+      ${kv([['Technicien',esc(v.technicien)],['Donneur d\'ordre',esc(v.donneur_ordre)],['Saisie par',esc(v.saisi_par)],['Historique VT',(v.histoVT||[]).map(x=>esc(x)).join('<br>')]])}
+      ${v.notes?`<div class="note"><div class="xs mut">Notes</div>${esc(v.notes)}</div>`:''}`)}
+
+    ${sec('Synthèse du rapport',`<div id="auditzone">${a?auditHTML(a):'<div class="sm mut">Aucune synthèse. Joignez le rapport puis lancez la lecture.</div>'}</div>`,
+      (v.files||[]).length?`<button class="btn g sm" id="bAudit">${a?'Relire':'Lire le rapport'}</button>`:'')}
+
+    ${sec('Pistes de rappel',ps.length?`<div class="pistes">${ps.map(p=>`<div class="piste"><b>${p.code}</b><div><div class="sm">${esc(ficheTitre(p.code))}</div><div class="xs mut">${esc(p.why)}</div></div></div>`).join('')}</div><div class="xs mut" style="margin-top:8px">Suggestions déduites du rapport et de la fiche d'origine — à confirmer avec les critères de chaque fiche.</div>`:'<div class="sm mut">Aucune piste identifiée pour l\'instant. La lecture du rapport en fera apparaître.</div>')}
+
+    ${sec('Rapport d\'audit',`<div class="files">${(v.files||[]).map(f=>`<div class="file"><span class="nm">${esc(f.name)}</span><span class="xs mut">${Math.round(f.size/1024)} Ko</span><button class="btn g sm" data-dl="${f.id}">Ouvrir</button></div>`).join('')||'<span class="sm mut">Aucun fichier joint.</span>'}</div>`)}
+
+    ${sec('Suivi',`
+      <div class="cols" style="margin-bottom:10px">
+        <div><label class="f">Suivi commercial</label>${peutConfirmer()?`<select id="dstat">${STATUTS.map(s=>`<option ${(v.statut||'En attente')===s?'selected':''}>${s}</option>`).join('')}</select>`:`<span class="tag">${esc(v.statut||'En attente')}</span>`}</div>
+        <div><label class="f">Prochain rappel</label>${peutConfirmer()?`<input type="date" id="drap" value="${esc(v.rappel||'')}">`:`<span class="sm">${fmtD(v.rappel)}</span>`}</div>
+      </div>
+      ${v.confirme_par?`<div class="xs mut" style="margin-bottom:8px">Dernière qualification par ${esc(v.confirme_par)}</div>`:''}
+      ${peutConfirmer()?`<textarea id="dnote" rows="2" placeholder="Note d'appel…"></textarea><button class="btn g sm" id="dadd" style="margin-top:6px">Ajouter la note</button>`:''}
+      <div class="sm" style="margin-top:8px">${(v.suivi||[]).slice().reverse().map(h=>`<div class="hist"><span class="xs mut">${fmtD(h.d)} · ${esc(h.par)}</span><div>${esc(h.t)}</div></div>`).join('')||'<span class="mut">Aucun échange enregistré.</span>'}</div>`)}
+
+    <div class="actions">
+      ${peutConfirmer()?'<button class="btn" id="bStat">Enregistrer le suivi</button>':''}
+      <button class="btn g" id="bEdit">Modifier la fiche</button>
+      <button class="btn g" id="bPrint">Imprimer</button>
+      ${user.role==='direction'?'<button class="btn d" id="bDel" style="margin-left:auto">Supprimer</button>':''}
+    </div>
+  </div></div>`;
+  document.getElementById('ovl').onclick=closeModal;document.getElementById('cx').onclick=closeModal;
+  const on=(i,fn)=>{const e=document.getElementById(i);if(e)e.onclick=fn;};
+  on('bEdit',()=>formVisite(id));
+  on('bPrint',()=>window.print());
+  on('bAudit',async()=>{const btn=document.getElementById('bAudit');btn.disabled=true;btn.innerHTML='<span class="spin" style="border-color:rgba(0,0,0,.2);border-top-color:var(--encre)"></span>Lecture…';
+    try{v.audit=await analyserRapport(v);await save();closeModal();setTimeout(()=>detail(id),240);toast('Synthèse enregistrée');}
+    catch(e){toast(e.message||'Lecture impossible');btn.disabled=false;btn.textContent=v.audit?'Relire':'Lire le rapport';}});
+  on('bStat',async()=>{
+    const ne=document.getElementById('detat').value, nd=document.getElementById('ddate').value, ae=vtEtatN(v), ad=v.date;
+    if(ne!==ae||nd!==ad){
+      if(ne==='Reportée'&&nd===ad){toast('Indiquez la nouvelle date de la VT');return;}
+      let motif='';
+      if(ne==='Annulée'||ne==='Non concluante'){motif=prompt(ne==='Annulée'?'Motif de l\'annulation :':'Pourquoi la VT n\'est pas concluante :')||'';}
+      v.histoVT=v.histoVT||[];
+      v.histoVT.push(fmtD(new Date().toISOString().slice(0,10))+' · '+ae+' → '+ne+(nd!==ad?' (VT du '+fmtD(ad)+' au '+fmtD(nd)+')':'')+(motif?' — '+motif:'')+' · '+user.nom);
+      v.etat=ne; v.date=nd;
+    }
+    v.statut=document.getElementById('dstat').value;v.rappel=document.getElementById('drap').value;v.confirme_par=user.nom;v.updatedAt=Date.now();
+    await save();closeModal();render();toast('Fiche enregistrée');});
+  on('dadd',async()=>{const t=document.getElementById('dnote').value.trim();if(!t)return;v.suivi=v.suivi||[];v.suivi.push({d:new Date().toISOString().slice(0,10),par:user.nom,t});await save();closeModal();setTimeout(()=>detail(id),240);});
+  on('bDel',async()=>{if(!confirm('Supprimer cette visite et ses fichiers ?'))return;for(const f of(v.files||[]))await Store.del(fk(f.id));visites=visites.filter(x=>x.id!==id);await save();closeModal();render();toast('Visite supprimée');});
+  m.querySelectorAll('[data-dl]').forEach(b=>b.onclick=async()=>{const f=(v.files||[]).find(x=>x.id===b.dataset.dl);const d=await Store.get(fk(f.id));if(!d){toast('Fichier introuvable');return;}
+    const bin=atob(d.b64),arr=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);const url=URL.createObjectURL(new Blob([arr],{type:d.type||'application/octet-stream'}));
+    const a=document.createElement('a');a.href=url;a.download=f.name;a.click();setTimeout(()=>URL.revokeObjectURL(url),4000);});
+}
+function closeModal(){const m=document.getElementById('modal'),o=m.querySelector('.ovl');if(!o){m.innerHTML='';return;}if(o.classList.contains('closing'))return;o.classList.add('closing');setTimeout(()=>{if(m.querySelector('.ovl')===o)m.innerHTML='';},230);}
+
+/* ---------- import Excel / CSV ---------- */
+const IMP_FIELDS=[['raison_sociale','Raison sociale'],['siret','SIRET'],['naf','Code NAF'],['prenom','Prénom'],['nom','Nom'],['tel','Téléphone'],['email','E-mail'],['adresse','Adresse'],['cp','Code postal'],['ville','Ville'],['secteur','Secteur d\'activité'],['fiche','Fiche CEE (code)'],['date','Date de la visite'],['technicien','Technicien'],['donneur_ordre','Donneur d\'ordre'],['notes','Notes']];
+const IMP_RULES={raison_sociale:['raison','societe','société','entreprise','exploitation','enseigne','client'],siret:['siret','siren'],naf:['naf','ape'],prenom:['prenom','prénom'],nom:['nom'],tel:['tel','tél','phone','portable','mobile'],email:['mail','courriel'],adresse:['adresse','rue','voie'],cp:['cp','postal','zip'],ville:['ville','commune'],secteur:['secteur','activite','activité','filiere'],fiche:['fiche','operation','opération','cee','code'],date:['date','visite'],technicien:['technicien','intervenant'],donneur_ordre:['donneur','installateur','mandant'],notes:['note','observation','commentaire','remarque']};
+let parsed=null;
+function guessMap(h){const map={};h.forEach(c=>{const l=String(c).toLowerCase();for(const[f,keys]of Object.entries(IMP_RULES)){if(map[f])continue;if(keys.some(k=>l===k||l.includes(k))){map[f]=c;break;}}});return map;}
+function showImport(){const z=document.getElementById('impzone');
+  z.innerHTML=`<hr class="hr"><div class="drop" id="idrop">Déposer un fichier Excel ou CSV<br><span class="xs">première ligne = intitulés de colonnes</span></div><input type="file" id="ifile" accept=".xlsx,.xls,.csv" style="display:none"><div id="imap"></div>`;
+  const d=document.getElementById('idrop');d.onclick=()=>document.getElementById('ifile').click();document.getElementById('ifile').onchange=e=>{if(e.target.files[0])parseFile(e.target.files[0]);};
+  d.ondragover=e=>e.preventDefault();d.ondrop=e=>{e.preventDefault();if(e.dataTransfer.files[0])parseFile(e.dataTransfer.files[0]);};}
+function parseFile(file){const r=new FileReader();r.onload=e=>{try{const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array',cellDates:true});const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:'',raw:false});if(!rows.length){toast('Fichier vide');return;}parsed={rows,headers:Object.keys(rows[0]),map:guessMap(Object.keys(rows[0])),name:file.name};drawMap();}catch(err){toast('Lecture impossible');}};r.readAsArrayBuffer(file);}
+function drawMap(){const z=document.getElementById('imap');
+  z.innerHTML=`<div class="sm" style="margin:12px 0 6px"><b>${esc(parsed.name)}</b> — ${parsed.rows.length} lignes. Vérifiez la correspondance des colonnes.</div>
+    ${IMP_FIELDS.map(([k,l])=>`<div class="maprow"><span class="sm">${l}</span><select data-m="${k}"><option value="">— ignorer —</option>${parsed.headers.map(h=>`<option ${parsed.map[k]===h?'selected':''}>${esc(h)}</option>`).join('')}</select></div>`).join('')}
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-top:12px">
+      <div style="flex:1;min-width:180px"><label class="f">Fiche CEE par défaut (si absente du fichier)</label><div id="ifp"></div></div>
+      <div style="flex:1;min-width:160px"><label class="f">Donneur d'ordre par défaut</label><input type="text" id="ido"></div>
+      <div><label class="f">Type</label><div class="seg" id="iseg"><button type="button" data-t="B2B" class="on">B2B</button><button type="button" data-t="B2C">B2C</button></div></div>
+      <button class="btn" id="irun">Importer ${parsed.rows.length} visites</button></div>`;
+  let defF='',itype='B2B';fichePicker(document.getElementById('ifp'),'',c=>defF=c);
+  z.querySelectorAll('#iseg button').forEach(b=>b.onclick=()=>{itype=b.dataset.t;z.querySelectorAll('#iseg button').forEach(x=>x.classList.toggle('on',x===b));});
+  z.querySelectorAll('[data-m]').forEach(s=>s.onchange=()=>parsed.map[s.dataset.m]=s.value);
+  document.getElementById('irun').onclick=async()=>{const ido=document.getElementById('ido').value.trim();let n=0,skip=0;
+    const seen=new Set(visites.flatMap(x=>[x.siret&&x.siret.replace(/\D/g,''),x.tel&&x.tel.replace(/\D/g,'')].filter(Boolean)));let dup=0;
+    parsed.rows.forEach(row=>{const o={id:uid(),createdAt:Date.now(),type:itype,files:[],source:parsed.name,saisi_par:user.nom,statut:'En attente'};
+      IMP_FIELDS.forEach(([k])=>{const c=parsed.map[k];o[k]=c?String(row[c]==null?'':row[c]).trim():'';});
+      if(o.date){const d=new Date(o.date);if(!isNaN(d))o.date=d.toISOString().slice(0,10);}
+      o.fiche=(o.fiche||'').toUpperCase().replace(/\s+/g,'');if(o.fiche&&!FMAP[o.fiche]){const hit=FICHES.find(f=>o.fiche.includes(f[0]));o.fiche=hit?hit[0]:o.fiche;}
+      if(!o.fiche)o.fiche=defF;if(!o.donneur_ordre)o.donneur_ordre=ido;o.dept=deptOf(o.cp);
+      if(!o.nom&&!o.raison_sociale&&!o.tel){skip++;return;}const ks=(o.siret||'').replace(/\D/g,''),kt=(o.tel||'').replace(/\D/g,'');if((ks&&seen.has(ks))||(kt&&seen.has(kt))){dup++;return;}if(ks)seen.add(ks);if(kt)seen.add(kt);visites.push(o);n++;});
+    await save();parsed=null;render();toast(n+' visites importées'+(dup?' · '+dup+' doublons écartés':'')+(skip?' · '+skip+' lignes vides':''));};}
+
+/* ---------- export ---------- */
+function dl(name,content,type){const url=URL.createObjectURL(new Blob([content],{type}));const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),3000);}
+function exportCSV(rows0,name){const cols=[['type','Type'],['raison_sociale','Raison sociale'],['siret','SIRET'],['naf','NAF'],['prenom','Prénom'],['nom','Nom'],['tel','Téléphone'],['email','E-mail'],['adresse','Adresse'],['cp','CP'],['ville','Ville'],['dept','Département'],['secteur','Secteur'],['fiche','Fiche CEE'],['ficheTitre','Intitulé'],['date','Date visite'],['technicien','Technicien'],['donneur_ordre','Donneur d\'ordre'],['statut','Statut'],['notes','Notes'],['optout','Ne pas recontacter']];
+  const rows=(rows0||window._listeCourante()).map(v=>Object.assign({},v,{ficheTitre:ficheTitre(v.fiche),optout:v.optout?'oui':''}));
+  dl(name||'visittrack-export.csv','\uFEFF'+cols.map(c=>c[1]).join(';')+'\n'+rows.map(r=>cols.map(c=>'"'+String(r[c[0]]==null?'':r[c[0]]).replace(/"/g,'""')+'"').join(';')).join('\n'),'text/csv');}
+
+/* ---------- événements ---------- */
+function bind(){
+  document.querySelectorAll('[data-open]').forEach(e=>e.onclick=ev=>{if(ev.target.closest('.ck'))return;detail(e.dataset.open);});
+  const on=(id,ev,fn)=>{const e=document.getElementById(id);if(e)e.addEventListener(ev,fn);};
+  const keep=(id,setter)=>e=>{setter(e.target.value);shown=pageSize;const p=e.target.selectionStart;render();const n=document.getElementById(id);if(n){n.focus();n.setSelectionRange(p,p);}};
+  on('q','input',keep('q',v=>q=v));on('cq','input',keep('cq',v=>catQ=v));
+  on('ff','change',e=>{filtreFiche=e.target.value;shown=pageSize;render();});on('fe','change',e=>{filtreEtat=e.target.value;shown=pageSize;render();});on('ft','change',e=>{filtreTech=e.target.value;shown=pageSize;render();});on('fs','change',e=>{filtreStatut=e.target.value;shown=pageSize;render();});
+  document.querySelectorAll('#view [data-t]').forEach(b=>{if(b.dataset.rep===undefined)b.onclick=()=>{filtreType=b.dataset.t;shown=pageSize;render();};});
+  on('bImp','click',showImport);on('bExp','click',()=>exportCSV());
+  document.querySelectorAll('[data-sort]').forEach(t=>t.onclick=()=>{if(sortKey===t.dataset.sort)sortDir=-sortDir;else{sortKey=t.dataset.sort;sortDir=1;}render();});
+  on('bMore','click',()=>{shown+=pageSize;render();});
+  document.querySelectorAll('[data-ck]').forEach(c=>c.onclick=e=>{e.stopPropagation();if(c.checked)sel.add(c.dataset.ck);else sel.delete(c.dataset.ck);render();});
+  on('ckAll','click',e=>{e.stopPropagation();const l=window._listeCourante().slice(0,shown);if(e.target.checked)l.forEach(v=>sel.add(v.id));else l.forEach(v=>sel.delete(v.id));render();});
+  on('bulkClr','click',()=>{sel.clear();render();});
+  on('fclear','click',()=>{q='';filtreFiche='';filtreType='';filtreStatut='';filtrePeriode='';filtreEtat='';filtreTech='';shown=pageSize;render();});
+  document.querySelectorAll('[data-tech]').forEach(e=>e.onclick=ev=>{ev.stopPropagation();filtreTech=e.dataset.tech;filtrePeriode='';shown=pageSize;view='visites';render();});
+  document.querySelectorAll('[data-rep]').forEach(e=>e.onclick=()=>{repVue=e.dataset.rep;render();});
+  document.querySelectorAll('[data-per]').forEach(e=>e.onclick=ev=>{ev.stopPropagation();filtrePeriode=e.dataset.per;filtreStatut=e.dataset.stat||'';shown=pageSize;view='visites';render();});
+  on('bDemoOff','click',async()=>{if(!confirm('Retirer les visites de démonstration ?'))return;await retirerDemo();try{await Store.set(KD,'off');}catch(e){}render();toast('Démonstration retirée');});
+  on('bDemoOn','click',async()=>{await chargerDemo();try{await Store.set(KD,'on');}catch(e){}render();toast('Démonstration chargée');});
+  on('bulkExp','click',()=>exportCSV(visites.filter(v=>sel.has(v.id)&&!v.optout),'liste-appel.csv'));
+  on('bulkStat','change',async e=>{const s=e.target.value;if(!s)return;visites.forEach(v=>{if(sel.has(v.id)){v.statut=s;v.confirme_par=user.nom;v.updatedAt=Date.now();}});await save();toast(sel.size+' visites → '+s);sel.clear();render();});
+  on('bBkp','click',()=>dl('visittrack-sauvegarde-'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify({visites},null,1),'application/json'));
+  document.querySelectorAll('[data-cs]').forEach(c=>c.onclick=()=>{catSect=c.dataset.cs;render();});
+  document.querySelectorAll('[data-cf]').forEach(c=>c.onclick=()=>{filtreFiche=c.dataset.cf;view='visites';render();});
+}
+document.getElementById('bMenu').onclick=openDrawer;
+document.getElementById('bNew').onclick=()=>formVisite(null);
+document.getElementById('bNewM').onclick=()=>formVisite(null);
+let rsz;window.addEventListener('resize',()=>{clearTimeout(rsz);rsz=setTimeout(()=>{if(user&&view==='visites')render();},200);});
+document.getElementById('bOut').onclick=async()=>{user=null;try{await Store.del(KS);}catch(e){}gateOut();};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeDrawer();}});
+(async()=>{try{await load();}catch(e){}let s=null;try{s=await Store.get(KS);}catch(e){}if(s&&ACCES.find(a=>a.login===s.login)){user=s;enter();}else gate();})();
+</script>
+</body>
+</html>
